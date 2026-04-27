@@ -1,10 +1,10 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 
-const rootElement = document.getElementById('root')
+const rootElement = document.getElementById("root");
 
 if (!rootElement) {
-  throw new Error('Root element not found')
+  throw new Error("Root element not found");
 }
 
 createRoot(rootElement).render(
@@ -14,4 +14,4 @@ createRoot(rootElement).render(
       <p>Coming soon — Phase 2</p>
     </div>
   </StrictMode>
-)
+);

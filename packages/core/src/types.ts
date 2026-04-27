@@ -1,17 +1,23 @@
-import type { AiProvider, ConfidenceTier, ModelDefinition } from '@intentform/shared'
+import type {
+  AiProvider,
+  ConfidenceTier,
+  ModelDefinition,
+} from "@intentform/shared";
 
 export interface IntentFormConfig {
-  adapter: FormAdapter
-  provider: AiProvider | AiProvider[]
-  models: ModelDefinition[]
-  tiers?: ConfidenceTier[]
+  adapter: FormAdapter;
+  models: ModelDefinition[];
+  provider: AiProvider | AiProvider[];
+  tiers?: ConfidenceTier[];
 }
 
 export interface FormAdapter {
-  id: string
+  id: string;
 }
 
 export interface IntentFormEngine {
-  config: IntentFormConfig
-  resolveIntent(prompt: string): Promise<import('@intentform/shared').IntentResult>
+  config: IntentFormConfig;
+  resolveIntent(
+    prompt: string
+  ): Promise<import("@intentform/shared").IntentResult>;
 }

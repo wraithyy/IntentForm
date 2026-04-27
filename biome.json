@@ -1,4 +1,14 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "extends": ["ultracite/biome/core", "ultracite/biome/react"]
+  "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
+  "extends": ["ultracite/biome/core", "ultracite/biome/react"],
+  "linter": {
+    "rules": {
+      "performance": {
+        "noBarrelFile": "off"
+      },
+      "suspicious": {
+        "useAwait": "off"
+      }
+    }
+  }
 }

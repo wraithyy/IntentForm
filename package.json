@@ -10,17 +10,21 @@
     "fix": "ultracite fix",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && changeset publish",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
     "@changesets/cli": "^2.27.7",
+    "husky": "^9.1.4",
+    "lint-staged": "^15.2.9",
     "typescript": "^5.5.4",
     "ultracite": "^7.6.2",
-    "vitest": "^2.0.5",
-    "husky": "^9.1.4",
-    "lint-staged": "^15.2.9"
+    "vitest": "^2.0.5"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,jsonc,css}": ["ultracite fix"]
+    "*.{js,jsx,ts,tsx,json,jsonc,css}": [
+      "ultracite fix"
+    ]
   }
 }

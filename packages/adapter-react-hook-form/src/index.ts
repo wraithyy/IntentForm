@@ -1,5 +1,5 @@
-import type { FormAdapter } from '@intentform/core'
+import type { FormAdapter } from "@intentform/core";
 
 export function reactHookFormAdapter(): FormAdapter {
-  return { id: 'react-hook-form' }
+  return { id: "react-hook-form" };
 }

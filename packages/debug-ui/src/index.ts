@@ -1,2 +1,2 @@
-export { IntentFormDebugPanel } from './debug-panel.js'
-export type { IntentFormDebugPanelProps } from './types.js'
+export { IntentFormDebugPanel } from "./debug-panel.js";
+export type { IntentFormDebugPanelProps } from "./types.js";

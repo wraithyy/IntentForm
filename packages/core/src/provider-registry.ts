@@ -1,11 +1,11 @@
-import type { AiProvider } from '@intentform/shared'
+import type { AiProvider } from "@intentform/shared";
 
-const registry: AiProvider[] = []
+const registry: AiProvider[] = [];
 
 export function registerProviders(providers: AiProvider[]): void {
-  registry.push(...providers)
+  registry.push(...providers);
 }
 
 export function getProviders(): AiProvider[] {
-  return [...registry]
+  return [...registry];
 }

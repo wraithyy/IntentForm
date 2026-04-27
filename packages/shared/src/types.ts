@@ -1,58 +1,58 @@
 export interface AiProvider {
-  generateStructured(input: AiProviderInput): Promise<AiProviderOutput>
+  generateStructured(input: AiProviderInput): Promise<AiProviderOutput>;
 }
 
 export interface AiProviderInput {
-  prompt: string
-  schema: unknown
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>;
+  prompt: string;
+  schema: unknown;
 }
 
 export interface AiProviderOutput {
-  data: unknown
-  confidence: number
+  confidence: number;
+  data: unknown;
   usage?: {
-    tokensIn: number
-    tokensOut: number
-    cost?: number
-  }
+    tokensIn: number;
+    tokensOut: number;
+    cost?: number;
+  };
 }
 
 export interface IntentResult {
-  model: string
-  values: Record<string, unknown>
-  fieldRelevance: Record<string, number>
-  confidence: number
+  confidence: number;
+  fieldRelevance: Record<string, number>;
+  model: string;
+  values: Record<string, unknown>;
 }
 
 export interface FieldDefinition {
-  id: string
-  label: string
-  type: string
-  required?: boolean
-  description?: string
+  description?: string;
+  id: string;
+  label: string;
+  required?: boolean;
+  type: string;
 }
 
 export interface Rule {
-  field: string
-  value: unknown
-  effect: RuleEffect
-  target: string
+  effect: RuleEffect;
+  field: string;
+  target: string;
+  value: unknown;
 }
 
-export type RuleEffect = 'show' | 'hide' | 'require' | 'unrequire'
+export type RuleEffect = "show" | "hide" | "require" | "unrequire";
 
 export interface ConfidenceTier {
-  id: string
-  threshold?: number
-  provider?: string
+  id: string;
+  provider?: string;
+  threshold?: number;
 }
 
 export interface ModelDefinition {
-  id: string
-  label: string
-  description: string
-  useCases: string[]
-  fields: FieldDefinition[]
-  rules: Rule[]
+  description: string;
+  fields: FieldDefinition[];
+  id: string;
+  label: string;
+  rules: Rule[];
+  useCases: string[];
 }

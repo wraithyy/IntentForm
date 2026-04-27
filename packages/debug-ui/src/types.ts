@@ -1,10 +1,10 @@
-import type { IntentResult } from '@intentform/shared'
+import type { IntentResult } from "@intentform/shared";
 
 export interface IntentFormDebugPanelProps {
-  result?: IntentResult
-  prompt?: string
-  providerUsed?: string
-  tierSelected?: string
-  latencyMs?: number
-  rawOutput?: unknown
+  latencyMs?: number;
+  prompt?: string;
+  providerUsed?: string;
+  rawOutput?: unknown;
+  result?: IntentResult;
+  tierSelected?: string;
 }

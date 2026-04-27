@@ -1,5 +1,5 @@
-import type { FormAdapter } from '@intentform/core'
+import type { FormAdapter } from "@intentform/core";
 
 export function tanstackFormAdapter(): FormAdapter {
-  return { id: 'tanstack-form' }
+  return { id: "tanstack-form" };
 }
