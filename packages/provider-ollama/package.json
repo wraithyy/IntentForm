@@ -1,0 +1,28 @@
+{
+  "name": "@intentform/provider-ollama",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "ollama": ">=0.5.0"
+  },
+  "dependencies": {
+    "@intentform/core": "workspace:*",
+    "@intentform/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "ollama": "^0.5.9",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

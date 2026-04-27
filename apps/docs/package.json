@@ -1,0 +1,9 @@
+{
+  "name": "@intentform/docs",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "echo 'Docs site — Phase 9'",
+    "build": "echo 'Docs site — Phase 9'"
+  }
+}

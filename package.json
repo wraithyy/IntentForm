@@ -1,0 +1,26 @@
+{
+  "name": "intentform",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.7",
+    "typescript": "^5.5.4",
+    "ultracite": "^7.6.2",
+    "vitest": "^2.0.5",
+    "husky": "^9.1.4",
+    "lint-staged": "^15.2.9"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc,css}": ["ultracite fix"]
+  }
+}
