@@ -1,17 +1,27 @@
 import type { ModelDefinition } from "@intentform/shared";
 
-const registry = new Map<string, ModelDefinition>();
+export class ModelRegistry {
+  readonly #models = new Map<string, ModelDefinition>();
 
-export function registerModels(models: ModelDefinition[]): void {
-  for (const model of models) {
-    registry.set(model.id, model);
+  register(models: ModelDefinition[]): void {
+    for (const model of models) {
+      this.#models.set(model.id, model);
+    }
   }
-}
 
-export function getModel(id: string): ModelDefinition | undefined {
-  return registry.get(id);
-}
+  get(id: string): ModelDefinition | undefined {
+    return this.#models.get(id);
+  }
 
-export function getAllModels(): ModelDefinition[] {
-  return Array.from(registry.values());
+  getAll(): ModelDefinition[] {
+    return Array.from(this.#models.values());
+  }
+
+  has(id: string): boolean {
+    return this.#models.has(id);
+  }
+
+  size(): number {
+    return this.#models.size;
+  }
 }

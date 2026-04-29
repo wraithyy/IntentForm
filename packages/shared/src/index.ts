@@ -1,8 +1,16 @@
 export type {
   AiProvider,
+  AiProviderInput,
+  AiProviderOutput,
   ConfidenceTier,
   FieldDefinition,
-  IntentResult,
+  FieldOption,
+  FieldType,
+  IntentResolution,
   ModelDefinition,
   Rule,
+  RuleAction,
+  RuleCondition,
+  RuleEffect,
+  RuleEngineResult,
 } from "./types.js";
