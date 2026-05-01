@@ -11,8 +11,10 @@
   "dependencies": {
     "@intentform/core": "workspace:*",
     "@intentform/react": "workspace:*",
+    "@intentform/shared": "workspace:*",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "@intentform/provider-openai": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

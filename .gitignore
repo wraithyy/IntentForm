@@ -5,3 +5,7 @@ dist/
 coverage/
 .DS_Store
 *.local
+vite.config.js
+vite.config.js.map
+vite.config.d.ts
+vite.config.d.ts.map

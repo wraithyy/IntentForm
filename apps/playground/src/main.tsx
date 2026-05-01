@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { App } from "./app.js";
 
 const rootElement = document.getElementById("root");
 
@@ -9,9 +10,6 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <div>
-      <h1>IntentForm Playground</h1>
-      <p>Coming soon — Phase 2</p>
-    </div>
+    <App />
   </StrictMode>
 );

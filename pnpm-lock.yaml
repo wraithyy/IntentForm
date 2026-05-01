@@ -37,9 +37,15 @@ importers:
       '@intentform/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@intentform/provider-openai':
+        specifier: workspace:*
+        version: link:../../packages/provider-openai
       '@intentform/react':
         specifier: workspace:*
         version: link:../../packages/react
+      '@intentform/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -93,12 +99,12 @@ importers:
       '@intentform/core':
         specifier: workspace:*
         version: link:../core
+      '@intentform/react':
+        specifier: workspace:*
+        version: link:../react
       '@intentform/shared':
         specifier: workspace:*
         version: link:../shared
-      react:
-        specifier: '>=18.0.0'
-        version: 18.3.1
     devDependencies:
       '@tanstack/react-form':
         specifier: ^0.34.0
@@ -106,6 +112,15 @@ importers:
       '@types/react':
         specifier: ^18.3.3
         version: 18.3.28
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.28)
+      react:
+        specifier: ^18.3.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.0
+        version: 18.3.1(react@18.3.1)
       typescript:
         specifier: ^5.5.4
         version: 5.9.3
