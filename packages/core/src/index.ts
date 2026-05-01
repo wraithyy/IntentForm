@@ -5,6 +5,8 @@ export {
   parseStructuredOutput,
   StructuredOutputParseError,
 } from "./structured-output-parser.js";
+export type { TierResult } from "./tier-router.js";
+export { routeThroughTiers } from "./tier-router.js";
 export type {
   FormAdapter,
   IntentFormConfig,

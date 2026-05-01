@@ -41,11 +41,6 @@ export interface Rule {
   when: RuleCondition;
 }
 
-export interface ConfidenceTier {
-  id: string;
-  threshold?: number;
-}
-
 export interface ModelDefinition {
   description: string;
   fields: FieldDefinition[];
@@ -75,6 +70,12 @@ export interface AiProvider {
   generateStructured(input: AiProviderInput): Promise<AiProviderOutput>;
 }
 
+export interface ConfidenceTier {
+  id: string;
+  provider: AiProvider;
+  threshold?: number;
+}
+
 export interface RuleEngineResult {
   hiddenFields: ReadonlySet<string>;
   requiredFields: ReadonlySet<string>;
@@ -86,5 +87,6 @@ export interface IntentResolution {
   hiddenFields: ReadonlySet<string>;
   modelId: string;
   requiredFields: ReadonlySet<string>;
+  tierId?: string;
   values: Record<string, unknown>;
 }

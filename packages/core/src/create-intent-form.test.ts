@@ -1,6 +1,7 @@
 import type {
   AiProvider,
   AiProviderInput,
+  ConfidenceTier,
   ModelDefinition,
 } from "@intentform/shared";
 import { describe, expect, it, vi } from "vitest";
@@ -28,6 +29,27 @@ const accidentModel: ModelDefinition = {
 function makeProvider(data: unknown, confidence = 0.9): AiProvider {
   return {
     generateStructured: vi.fn().mockResolvedValue({ data, confidence }),
+  };
+}
+
+function makeValidData(confidence: number): unknown {
+  return {
+    model: "accidentReport",
+    values: { accidentType: "collision" },
+    fieldRelevance: {},
+    confidence,
+  };
+}
+
+function makeTier(
+  id: string,
+  confidence: number,
+  threshold?: number
+): ConfidenceTier {
+  return {
+    id,
+    provider: makeProvider(makeValidData(confidence)),
+    ...(threshold !== undefined && { threshold }),
   };
 }
 
@@ -155,5 +177,63 @@ describe("createIntentForm", () => {
     const config = { ...baseConfig, provider: makeProvider(null) };
     const engine = createIntentForm(config);
     expect(engine.config).toBe(config);
+  });
+
+  describe("tier routing", () => {
+    it("single tier with high confidence is accepted immediately", async () => {
+      const tier = makeTier("fast", 0.95, 0.72);
+      const engine = createIntentForm({
+        ...baseConfig,
+        provider: makeProvider(null),
+        tiers: [tier],
+      });
+      const result = await engine.resolveIntent("I had an accident");
+      expect(result.tierId).toBe("fast");
+      expect(tier.provider.generateStructured).toHaveBeenCalledOnce();
+    });
+
+    it("first tier below threshold escalates to second tier", async () => {
+      const fastTier = makeTier("fast", 0.5, 0.72);
+      const smartTier = makeTier("smart", 0.9, 0.88);
+      const engine = createIntentForm({
+        ...baseConfig,
+        provider: makeProvider(null),
+        tiers: [fastTier, smartTier],
+      });
+      const result = await engine.resolveIntent("complex accident scenario");
+      expect(result.tierId).toBe("smart");
+      expect(fastTier.provider.generateStructured).toHaveBeenCalledOnce();
+      expect(smartTier.provider.generateStructured).toHaveBeenCalledOnce();
+    });
+
+    it("all tiers below threshold returns last tier result as best effort", async () => {
+      const fastTier = makeTier("fast", 0.3, 0.72);
+      const smartTier = makeTier("smart", 0.5, 0.88);
+      const premiumTier = makeTier("premium", 0.6);
+      const engine = createIntentForm({
+        ...baseConfig,
+        provider: makeProvider(null),
+        tiers: [fastTier, smartTier, premiumTier],
+      });
+      const result = await engine.resolveIntent("very ambiguous input");
+      expect(result.tierId).toBe("premium");
+      expect(fastTier.provider.generateStructured).toHaveBeenCalledOnce();
+      expect(smartTier.provider.generateStructured).toHaveBeenCalledOnce();
+      expect(premiumTier.provider.generateStructured).toHaveBeenCalledOnce();
+    });
+
+    it("tierId is undefined when no tiers configured", async () => {
+      const engine = createIntentForm({
+        ...baseConfig,
+        provider: makeProvider({
+          model: "accidentReport",
+          values: {},
+          fieldRelevance: {},
+          confidence: 0.9,
+        }),
+      });
+      const result = await engine.resolveIntent("test");
+      expect(result.tierId).toBeUndefined();
+    });
   });
 });
