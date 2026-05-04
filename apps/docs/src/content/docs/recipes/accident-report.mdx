@@ -1,0 +1,125 @@
+---
+title: "Recipe: Accident Report"
+description: Full working accident report form with conditional fields and AI pre-fill.
+---
+
+Copy-paste this and it works. Requires `OPENAI_API_KEY` in your environment.
+
+## Model definition
+
+```typescript
+// models/accident-report.ts
+import { z } from 'zod'
+import { when } from '@intentform/core'
+import type { ModelDefinition } from '@intentform/shared'
+
+export const accidentReportModel: ModelDefinition = {
+  id: 'accidentReport',
+  label: 'Accident Report',
+  description: 'Workplace or public incident report with injury details',
+  useCases: ['accident', 'injury', 'incident', 'fall', 'hurt', 'workplace', 'collision'],
+  schema: z.object({
+    reporterName: z.string(),
+    incidentDate: z.string(),
+    location: z.string(),
+    description: z.string(),
+    injuryType: z.enum(['none', 'minor', 'moderate', 'severe']),
+    hospitalName: z.string().optional(),
+  }),
+  fields: [
+    {
+      id: 'reporterName',
+      type: 'text',
+      label: 'Your Name',
+      required: true,
+    },
+    {
+      id: 'incidentDate',
+      type: 'date',
+      label: 'Date of Incident',
+      required: true,
+    },
+    {
+      id: 'location',
+      type: 'text',
+      label: 'Location',
+      required: true,
+    },
+    {
+      id: 'description',
+      type: 'textarea',
+      label: 'What happened?',
+      required: true,
+    },
+    {
+      id: 'injuryType',
+      type: 'select',
+      label: 'Injury Severity',
+      options: [
+        { value: 'none', label: 'No injury' },
+        { value: 'minor', label: 'Minor' },
+        { value: 'moderate', label: 'Moderate' },
+        { value: 'severe', label: 'Severe' },
+      ],
+    },
+    {
+      id: 'hospitalName',
+      type: 'text',
+      label: 'Hospital / Clinic Name',
+    },
+  ],
+  rules: [
+    when('injuryType', 'severe').show('hospitalName'),
+    when('injuryType', 'severe').require('hospitalName'),
+    when('injuryType', 'moderate').show('hospitalName'),
+  ],
+}
+```
+
+## Engine setup
+
+```typescript
+// engine.ts
+import { createIntentForm } from '@intentform/core'
+import { openaiProvider } from '@intentform/provider-openai'
+import { accidentReportModel } from './models/accident-report'
+
+export const engine = createIntentForm({
+  provider: openaiProvider({
+    apiKey: process.env.OPENAI_API_KEY!,
+  }),
+  models: [accidentReportModel],
+})
+```
+
+## Component
+
+```typescript
+// AccidentReportPage.tsx
+import { IntentForm } from '@intentform/react'
+import { engine } from './engine'
+
+export default function AccidentReportPage() {
+  return (
+    <div style={{ maxWidth: 600, margin: '0 auto', padding: 24 }}>
+      <h1>Report an Incident</h1>
+      <p>Describe what happened and the form will pre-fill based on your description.</p>
+      <IntentForm
+        engine={engine}
+        onSubmit={(values) => {
+          console.log('Submitted:', values)
+          // send to your API
+        }}
+      />
+    </div>
+  )
+}
+```
+
+## Example intents to test
+
+- `"fell down stairs at the warehouse on Monday, bruised knee, needed a bandage"`
+- `"car hit me in the parking lot, moderate injury, taken to City Hospital"`
+- `"slipped on wet floor in the office kitchen, no injury"`
+
+The `hospitalName` field appears automatically when `injuryType` is `moderate` or `severe`.

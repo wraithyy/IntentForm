@@ -1,0 +1,93 @@
+---
+title: "Recipe: Keep API Key Server-Side"
+description: How to use IntentForm without exposing your AI provider API key in the browser.
+---
+
+:::caution[Never expose API keys in the browser]
+Putting `OPENAI_API_KEY` (or any provider key) in client-side code makes it visible to every user of your app. Always keep it on the server.
+:::
+
+## Option A: Server-side proxy endpoint
+
+Create an API route on your server that holds the key and forwards requests.
+
+**TanStack Start server function:**
+
+```typescript
+// app/server/intent.ts
+import { createServerFn } from '@tanstack/start'
+import { createIntentForm } from '@intentform/core'
+import { openaiProvider } from '@intentform/provider-openai'
+import { accidentReportModel } from '../models/accident-report'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [accidentReportModel],
+})
+
+export const parseIntent = createServerFn('POST', async ({ intent, modelId }) => {
+  return engine.parse(intent, modelId)
+})
+```
+
+**Next.js API route:**
+
+```typescript
+// app/api/intent/route.ts
+import { createIntentForm } from '@intentform/core'
+import { openaiProvider } from '@intentform/provider-openai'
+import { accidentReportModel } from '@/models/accident-report'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [accidentReportModel],
+})
+
+export async function POST(request: Request) {
+  const { intent, modelId } = await request.json()
+  const result = await engine.parse(intent, modelId)
+  return Response.json(result)
+}
+```
+
+## Option B: Custom fetch provider
+
+Pass a custom provider to the client-side engine. The provider calls your server endpoint instead of the AI provider directly.
+
+```typescript
+// providers/server-provider.ts
+import type { AiProvider, GenerateInput } from '@intentform/core'
+
+export function serverProvider(endpoint = '/api/intent'): AiProvider {
+  return {
+    async generateStructured(input: GenerateInput) {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+      })
+      if (!response.ok) {
+        throw new Error(`Intent API error: ${response.status}`)
+      }
+      return response.json()
+    },
+  }
+}
+```
+
+```typescript
+// client engine — no API key here
+import { createIntentForm } from '@intentform/core'
+import { serverProvider } from './providers/server-provider'
+
+export const engine = createIntentForm({
+  provider: serverProvider('/api/intent'),
+  models: [accidentReportModel],
+})
+```
+
+Your server endpoint (Option A) then uses the real provider with the key from the environment.
+
+:::tip
+Option B is more flexible — you can add auth headers, rate limiting, and request logging to your proxy endpoint before forwarding to the AI provider.
+:::

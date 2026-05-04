@@ -1,0 +1,82 @@
+---
+title: IntentForm
+description: Transform natural language intent into validated, pre-filled forms using AI providers.
+---
+
+```typescript
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY }),
+  models: [accidentReportModel],
+})
+
+<IntentForm engine={engine} />
+// User types: "fell down stairs at work, bruised knee"
+// → form pre-fills: date=today, location=work, injuryType=minor
+```
+
+## What it does
+
+User types a sentence. IntentForm sends it to an AI provider, which returns structured JSON. The engine selects the best matching form model, pre-fills field values, and applies conditional logic — all before the user touches a single input.
+
+**Core flow:**
+
+```
+intent (string) → AI provider → structured JSON → model selection
+  → field pre-fill → rule evaluation → rendered form
+```
+
+## Install
+
+```bash
+pnpm add @intentform/core @intentform/react @intentform/provider-openai
+```
+
+## Minimal example
+
+```typescript
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { openaiProvider } from '@intentform/provider-openai'
+import { z } from 'zod'
+
+const contactModel = {
+  id: 'contact',
+  label: 'Contact Form',
+  description: 'General contact or support request',
+  useCases: ['contact', 'support', 'inquiry'],
+  schema: z.object({
+    name: z.string(),
+    email: z.string().email(),
+    message: z.string(),
+  }),
+  fields: [
+    { id: 'name', type: 'text', label: 'Name', required: true },
+    { id: 'email', type: 'text', label: 'Email', required: true },
+    { id: 'message', type: 'textarea', label: 'Message' },
+  ],
+  rules: [],
+}
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY }),
+  models: [contactModel],
+})
+
+export default function App() {
+  return <IntentForm engine={engine} />
+}
+```
+
+## Key concepts
+
+| Concept | Description |
+|---------|-------------|
+| [Models](/concepts/models) | Define form structure, Zod schema, and field list |
+| [Providers](/concepts/providers) | OpenAI, Anthropic, Google, Ollama — or your own |
+| [Adapters](/concepts/adapters) | TanStack Form or React Hook Form integration |
+| [Rules](/concepts/rules) | Conditional logic: hide/show/require based on field values |
+| [Confidence Tiers](/concepts/confidence-tiers) | Escalate to smarter models when confidence is low |
+
+:::tip[Try it live]
+Head to the [Playground](/playground) to test IntentForm with your own API key — no setup required.
+:::

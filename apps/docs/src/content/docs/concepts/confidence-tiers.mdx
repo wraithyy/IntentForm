@@ -1,0 +1,75 @@
+---
+title: Confidence Tier Routing
+description: Automatically escalate to smarter models when AI confidence is low.
+---
+
+```typescript
+import { createIntentForm } from '@intentform/core'
+import { openaiProvider } from '@intentform/provider-openai'
+import { anthropicProvider } from '@intentform/provider-anthropic'
+
+const engine = createIntentForm({
+  tiers: [
+    {
+      id: 'fast',
+      provider: openaiProvider({ model: 'gpt-4o-mini' }),
+      threshold: 0.72,
+    },
+    {
+      id: 'smart',
+      provider: openaiProvider({ model: 'gpt-4o' }),
+      threshold: 0.88,
+    },
+    {
+      id: 'premium',
+      provider: anthropicProvider({ model: 'claude-opus-4-7' }),
+      // no threshold = final fallback
+    },
+  ],
+  models: [myModel],
+})
+```
+
+## How it works
+
+Each tier has a `threshold`. When the AI returns a confidence score below the threshold, the engine discards the result and retries with the next tier's provider.
+
+```
+intent → fast tier (gpt-4o-mini)
+  confidence = 0.65 → below 0.72 → escalate
+
+intent → smart tier (gpt-4o)
+  confidence = 0.91 → above 0.88 → accept
+```
+
+Escalation also triggers on:
+- Parse failure (Zod validation error on AI output)
+- Missing required fields in the AI response
+- Rule conflicts that cannot be resolved
+
+## Single provider (no tiers)
+
+If you pass `provider` instead of `tiers`, all requests use that single provider:
+
+```typescript
+const engine = createIntentForm({
+  provider: openaiProvider({ model: 'gpt-4o' }),
+  models: [myModel],
+})
+```
+
+## Cost optimization
+
+Start cheap. The fast tier handles most well-formed intents. Only ambiguous or complex inputs escalate. Typical distribution: ~80% resolved at fast tier.
+
+```typescript
+tiers: [
+  { id: 'fast', provider: ollamaProvider({ model: 'llama3.2' }), threshold: 0.70 },
+  { id: 'smart', provider: openaiProvider({ model: 'gpt-4o-mini' }), threshold: 0.88 },
+  { id: 'premium', provider: openaiProvider({ model: 'gpt-4o' }) },
+]
+```
+
+:::tip
+Use `routeThroughTiers` from `@intentform/core` directly if you need custom escalation logic outside the standard engine flow.
+:::

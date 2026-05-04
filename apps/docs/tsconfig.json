@@ -1,0 +1,15 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "paths": {
+      "@intentform/core": ["../../packages/core/src/index.ts"],
+      "@intentform/react": ["../../packages/react/src/index.ts"],
+      "@intentform/shared": ["../../packages/shared/src/index.ts"],
+      "@intentform/provider-openai": [
+        "../../packages/provider-openai/src/index.ts"
+      ]
+    }
+  }
+}

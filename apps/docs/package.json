@@ -2,8 +2,30 @@
   "name": "@intentform/docs",
   "private": true,
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
-    "dev": "echo 'Docs site — Phase 9'",
-    "build": "echo 'Docs site — Phase 9'"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@intentform/core": "workspace:*",
+    "@intentform/react": "workspace:*",
+    "@intentform/shared": "workspace:*",
+    "@intentform/provider-openai": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "astro": "^6.0.0",
+    "@astrojs/starlight": "^0.38.4",
+    "@astrojs/react": "^4.0.0",
+    "starlight-typedoc": "^0.21.5",
+    "typedoc": "^0.28.0",
+    "typedoc-plugin-markdown": "^4.4.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.5.4"
   }
 }

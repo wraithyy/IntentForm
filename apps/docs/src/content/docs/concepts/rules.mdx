@@ -1,0 +1,66 @@
+---
+title: Conditional Logic
+description: Show, hide, require, or disable fields based on other field values.
+---
+
+```typescript
+import { when } from '@intentform/core'
+
+const accidentReportModel = {
+  // ...
+  rules: [
+    when('injuryType', 'severe').show('hospitalName'),
+    when('injuryType', 'severe').require('hospitalName'),
+    when('consent', false).hide('signatureDate'),
+    when('injuryType', 'none').disable('treatmentReceived'),
+  ],
+}
+```
+
+## Available actions
+
+| Method | Effect |
+|--------|--------|
+| `.show(field)` | Make the field visible (hidden by default if this rule exists) |
+| `.hide(field)` | Hide the field |
+| `.require(field)` | Mark the field as required |
+| `.disable(field)` | Render the field but prevent editing |
+
+## Multiple conditions, multiple effects
+
+Chain multiple rules targeting the same field:
+
+```typescript
+rules: [
+  when('travelClass', 'business').show('loyaltyNumber'),
+  when('travelClass', 'first').show('loyaltyNumber'),
+  when('hasInsurance', true).show('policyNumber'),
+  when('hasInsurance', true).require('policyNumber'),
+]
+```
+
+## Rule evaluation
+
+Rules are evaluated by `evaluateRules(rules, values)` from `@intentform/core`. The function returns a map of field names to their current state:
+
+```typescript
+import { evaluateRules } from '@intentform/core'
+
+const state = evaluateRules(model.rules, currentValues)
+// state.hospitalName → { visible: true, required: true, disabled: false }
+```
+
+The engine re-runs `evaluateRules` on every field change, so visibility updates instantly as the user fills the form.
+
+## Default visibility
+
+If no `.show()` or `.hide()` rule targets a field, that field is visible by default. A field only becomes hidden by default when at least one `.show()` rule references it — meaning "show only when condition is met."
+
+```typescript
+// hospitalName is hidden unless injuryType === 'severe'
+when('injuryType', 'severe').show('hospitalName')
+```
+
+:::note
+Rules are evaluated client-side after the form is rendered. They do not affect the AI parsing step — all fields are still present in the schema sent to the AI.
+:::

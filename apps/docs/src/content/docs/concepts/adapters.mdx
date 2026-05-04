@@ -1,0 +1,93 @@
+---
+title: Form Adapters
+description: Integrate with TanStack Form or React Hook Form.
+---
+
+Adapters connect IntentForm's engine to an underlying form library. The engine handles intent parsing and value pre-fill; the adapter handles form state, validation, and submission.
+
+## TanStack Form
+
+```bash
+pnpm add @intentform/adapter-tanstack-form @tanstack/react-form
+```
+
+```typescript
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { tanstackAdapter } from '@intentform/adapter-tanstack-form'
+import { openaiProvider } from '@intentform/provider-openai'
+
+const engine = createIntentForm({
+  adapter: tanstackAdapter(),
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [myModel],
+})
+
+export default function App() {
+  return (
+    <IntentForm
+      engine={engine}
+      onSubmit={(values) => console.log(values)}
+    />
+  )
+}
+```
+
+## React Hook Form
+
+```bash
+pnpm add @intentform/adapter-react-hook-form react-hook-form
+```
+
+```typescript
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { rhfAdapter } from '@intentform/adapter-react-hook-form'
+import { openaiProvider } from '@intentform/provider-openai'
+
+const engine = createIntentForm({
+  adapter: rhfAdapter(),
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [myModel],
+})
+
+export default function App() {
+  return (
+    <IntentForm
+      engine={engine}
+      onSubmit={(values) => console.log(values)}
+    />
+  )
+}
+```
+
+## When to use which
+
+| | TanStack Form | React Hook Form |
+|---|---|---|
+| Bundle size | Larger | Smaller |
+| Type safety | Full (schema-inferred) | Good |
+| Async validation | Built-in | Manual |
+| Existing codebase | Use if you already have it | Use if you already have it |
+| No preference | Recommended | Works well too |
+
+## Custom field rendering
+
+Both adapters accept a `fieldComponents` prop to override how specific field types are rendered:
+
+```typescript
+import type { FieldComponents } from '@intentform/react'
+
+const fieldComponents: FieldComponents = {
+  select: ({ field, options }) => (
+    <MyCustomSelect field={field} options={options} />
+  ),
+  text: ({ field }) => <MyInput field={field} />,
+}
+
+<IntentForm engine={engine} fieldComponents={fieldComponents} />
+```
+
+:::note
+If no adapter is passed to `createIntentForm`, IntentForm uses its built-in uncontrolled renderer. Use an adapter when you need full form library integration (validation, submission, dirty state, etc.).
+:::

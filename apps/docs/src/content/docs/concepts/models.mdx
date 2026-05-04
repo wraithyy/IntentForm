@@ -1,0 +1,85 @@
+---
+title: Defining Models
+description: How to define form models with schema, fields, and use cases.
+---
+
+```typescript
+import { z } from 'zod'
+import type { ModelDefinition } from '@intentform/shared'
+
+const supportTicketModel: ModelDefinition = {
+  id: 'supportTicket',
+  label: 'Support Ticket',
+  description: 'Customer support request or bug report',
+  useCases: ['support', 'bug', 'help', 'issue', 'broken', 'error'],
+  schema: z.object({
+    subject: z.string(),
+    priority: z.enum(['low', 'medium', 'high', 'critical']),
+    description: z.string(),
+    attachLogs: z.boolean(),
+    contactEmail: z.string().email(),
+  }),
+  fields: [
+    { id: 'subject', type: 'text', label: 'Subject', required: true },
+    {
+      id: 'priority',
+      type: 'select',
+      label: 'Priority',
+      options: [
+        { value: 'low', label: 'Low' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'high', label: 'High' },
+        { value: 'critical', label: 'Critical' },
+      ],
+    },
+    { id: 'description', type: 'textarea', label: 'Description' },
+    { id: 'attachLogs', type: 'boolean', label: 'Attach system logs' },
+    { id: 'contactEmail', type: 'text', label: 'Contact Email', required: true },
+  ],
+  rules: [],
+}
+```
+
+## Field reference
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | Unique identifier, used in AI output to select the model |
+| `label` | `string` | Human-readable name shown in the UI |
+| `description` | `string` | Passed to the AI as context for this model |
+| `useCases` | `string[]` | Keywords used for model selection when AI doesn't specify a model ID |
+| `schema` | `ZodSchema` | Validates and types the AI output values |
+| `fields` | `FieldDefinition[]` | Ordered list of fields to render |
+| `rules` | `Rule[]` | Conditional logic — see [Rules](/concepts/rules) |
+
+## Field definition
+
+```typescript
+type FieldDefinition = {
+  name: string          // must match a key in the Zod schema
+  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'date' | 'number'
+  label: string
+  required?: boolean
+  options?: { value: string; label: string }[]  // for select/radio
+}
+```
+
+## How schema maps to fields
+
+Each `name` in `fields` must correspond to a key in the Zod `schema`. The schema is used to:
+1. Validate AI-returned values before pre-filling
+2. Type the form values for adapters
+3. Provide the AI with allowed enum values (e.g. for `select` fields)
+
+## How `useCases` works
+
+When the AI doesn't return a `model` field in its output, the engine scores each registered model by counting keyword matches between the user's intent and the model's `useCases` array. The highest-scoring model wins.
+
+```typescript
+// "my login is broken" → matches 'bug', 'broken', 'issue' → supportTicket wins
+models: [supportTicketModel, accidentReportModel, travelModel]
+```
+
+:::tip
+Make `useCases` specific. Overlap between models causes ambiguous selection. Use `description` to give the AI more context.
+:::

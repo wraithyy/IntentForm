@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": [
+    "../../packages/core/src/**/*",
+    "../../packages/react/src/**/*",
+    "../../packages/shared/src/**/*"
+  ],
+  "exclude": [
+    "../../packages/*/node_modules/**/*",
+    "../../packages/*/__tests__/**/*",
+    "../../packages/*/src/**/*.test.*",
+    "../../packages/*/src/**/*.spec.*"
+  ]
+}

@@ -1,0 +1,119 @@
+---
+title: AI Providers
+description: Configure OpenAI, Anthropic, Google, or Ollama — or write your own.
+---
+
+```typescript
+import { openaiProvider } from '@intentform/provider-openai'
+
+const provider = openaiProvider({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o-mini',
+})
+```
+
+## Available providers
+
+### OpenAI
+
+```bash
+pnpm add @intentform/provider-openai
+```
+
+```typescript
+import { openaiProvider } from '@intentform/provider-openai'
+
+openaiProvider({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o-mini', // default
+})
+```
+
+### Anthropic
+
+```bash
+pnpm add @intentform/provider-anthropic
+```
+
+```typescript
+import { anthropicProvider } from '@intentform/provider-anthropic'
+
+anthropicProvider({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+  model: 'claude-sonnet-4-6', // default
+})
+```
+
+### Google
+
+```bash
+pnpm add @intentform/provider-google
+```
+
+```typescript
+import { googleProvider } from '@intentform/provider-google'
+
+googleProvider({
+  apiKey: process.env.GOOGLE_API_KEY!,
+  model: 'gemini-2.0-flash', // default
+})
+```
+
+### Ollama (local)
+
+```bash
+pnpm add @intentform/provider-ollama
+```
+
+```typescript
+import { ollamaProvider } from '@intentform/provider-ollama'
+
+ollamaProvider({
+  model: 'llama3.2',
+  baseUrl: 'http://localhost:11434', // default
+})
+```
+
+:::note[Ollama]
+Ollama runs locally — no API key required. Model quality varies; use a tier fallback for production. See [Confidence Tiers](/concepts/confidence-tiers).
+:::
+
+## Custom provider
+
+Implement the `AiProvider` interface to integrate any AI backend:
+
+```typescript
+import type { AiProvider, GenerateInput } from '@intentform/core'
+
+const myProvider: AiProvider = {
+  async generateStructured(input: GenerateInput) {
+    const response = await fetch('/api/intent', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
+    const json = await response.json()
+    return {
+      data: json.data,
+      confidence: json.confidence,
+      usage: {
+        tokensIn: json.usage?.input_tokens ?? 0,
+        tokensOut: json.usage?.output_tokens ?? 0,
+      },
+    }
+  },
+}
+```
+
+This pattern is useful for keeping API keys server-side. See [Keep API Key Server-Side](/recipes/server-side-key).
+
+## Provider interface
+
+```typescript
+interface AiProvider {
+  generateStructured(input: GenerateInput): Promise<{
+    data: unknown
+    confidence: number
+    usage?: { tokensIn: number; tokensOut: number; cost?: number }
+  }>
+}
+```

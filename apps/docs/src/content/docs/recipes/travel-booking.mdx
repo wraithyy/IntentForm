@@ -1,0 +1,117 @@
+---
+title: "Recipe: Travel Booking"
+description: Travel booking form with class-based conditional fields and AI pre-fill.
+---
+
+```typescript
+// Example intent:
+// "I need to book a business class flight to Tokyo for 2 people, leaving March 15, back March 22"
+// → destination=Tokyo, travelClass=business, passengers=2, departureDate=March 15, returnDate=March 22
+// → loyaltyNumber field appears (business class)
+```
+
+## Model definition
+
+```typescript
+// models/travel-booking.ts
+import { z } from 'zod'
+import { when } from '@intentform/core'
+import type { ModelDefinition } from '@intentform/shared'
+
+export const travelBookingModel: ModelDefinition = {
+  id: 'travelBooking',
+  label: 'Travel Booking',
+  description: 'Flight or travel booking request with passenger and class details',
+  useCases: ['travel', 'flight', 'trip', 'book', 'fly', 'journey', 'vacation', 'business travel'],
+  schema: z.object({
+    destination: z.string(),
+    departureDate: z.string(),
+    returnDate: z.string().optional(),
+    passengers: z.number().int().min(1).max(9),
+    travelClass: z.enum(['economy', 'business', 'first']),
+    loyaltyNumber: z.string().optional(),
+    specialRequests: z.string().optional(),
+  }),
+  fields: [
+    {
+      id: 'destination',
+      type: 'text',
+      label: 'Destination',
+      required: true,
+    },
+    {
+      id: 'departureDate',
+      type: 'date',
+      label: 'Departure Date',
+      required: true,
+    },
+    {
+      id: 'returnDate',
+      type: 'date',
+      label: 'Return Date',
+    },
+    {
+      id: 'passengers',
+      type: 'number',
+      label: 'Number of Passengers',
+      required: true,
+    },
+    {
+      id: 'travelClass',
+      type: 'select',
+      label: 'Travel Class',
+      options: [
+        { value: 'economy', label: 'Economy' },
+        { value: 'business', label: 'Business' },
+        { value: 'first', label: 'First Class' },
+      ],
+    },
+    {
+      id: 'loyaltyNumber',
+      type: 'text',
+      label: 'Loyalty Program Number',
+    },
+    {
+      id: 'specialRequests',
+      type: 'textarea',
+      label: 'Special Requests',
+    },
+  ],
+  rules: [
+    when('travelClass', 'business').show('loyaltyNumber'),
+    when('travelClass', 'first').show('loyaltyNumber'),
+  ],
+}
+```
+
+## Engine and component
+
+```typescript
+// App.tsx
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { openaiProvider } from '@intentform/provider-openai'
+import { travelBookingModel } from './models/travel-booking'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [travelBookingModel],
+})
+
+export default function TravelBookingPage() {
+  return (
+    <IntentForm
+      engine={engine}
+      onSubmit={(values) => console.log('Booking:', values)}
+    />
+  )
+}
+```
+
+## Example intents
+
+- `"I want to fly to Paris, 2 passengers, business class, next Friday, return the following Sunday"`
+- `"one way to New York economy, departing April 3, just me"`
+- `"first class to Dubai for my anniversary, March 1 to March 8, 2 passengers, need vegetarian meals"`
+
+The `loyaltyNumber` field appears only when `travelClass` is `business` or `first`.

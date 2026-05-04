@@ -1,0 +1,107 @@
+---
+title: Quick Start
+description: Set up IntentForm in 5 minutes with a working accident report example.
+---
+
+## 1. Install packages
+
+```bash
+pnpm add @intentform/core @intentform/react @intentform/provider-openai zod
+```
+
+## 2. Define a model
+
+A model tells IntentForm what fields to render and what Zod schema to validate against.
+
+```typescript
+// models/accident-report.ts
+import { z } from 'zod'
+import type { ModelDefinition } from '@intentform/shared'
+
+export const accidentReportModel: ModelDefinition = {
+  id: 'accidentReport',
+  label: 'Accident Report',
+  description: 'Workplace or public incident report',
+  useCases: ['accident', 'injury', 'incident', 'fall', 'workplace'],
+  schema: z.object({
+    reporterName: z.string(),
+    incidentDate: z.string(),
+    description: z.string(),
+    injuryType: z.enum(['none', 'minor', 'moderate', 'severe']),
+  }),
+  fields: [
+    { id: 'reporterName', type: 'text', label: 'Your Name', required: true },
+    { id: 'incidentDate', type: 'date', label: 'Date of Incident', required: true },
+    { id: 'description', type: 'textarea', label: 'What happened?' },
+    {
+      id: 'injuryType',
+      type: 'select',
+      label: 'Injury Severity',
+      options: [
+        { value: 'none', label: 'No injury' },
+        { value: 'minor', label: 'Minor' },
+        { value: 'moderate', label: 'Moderate' },
+        { value: 'severe', label: 'Severe' },
+      ],
+    },
+  ],
+  rules: [],
+}
+```
+
+## 3. Create the engine
+
+```typescript
+// engine.ts
+import { createIntentForm } from '@intentform/core'
+import { openaiProvider } from '@intentform/provider-openai'
+import { accidentReportModel } from './models/accident-report'
+
+export const engine = createIntentForm({
+  provider: openaiProvider({
+    apiKey: process.env.OPENAI_API_KEY!,
+    model: 'gpt-4o-mini', // optional, defaults to gpt-4o-mini
+  }),
+  models: [accidentReportModel],
+})
+```
+
+:::caution[API key]
+Never put `OPENAI_API_KEY` in client-side code. Use environment variables or a server-side proxy. See [Keep API Key Server-Side](/recipes/server-side-key).
+:::
+
+## 4. Render the form
+
+```typescript
+// App.tsx
+import { IntentForm } from '@intentform/react'
+import { engine } from './engine'
+
+export default function App() {
+  return (
+    <div>
+      <h1>Report an Incident</h1>
+      <IntentForm engine={engine} />
+    </div>
+  )
+}
+```
+
+## 5. Try it
+
+Type this into the intent input that appears:
+
+> "I fell down stairs at work yesterday, minor bruise on left knee"
+
+The form pre-fills:
+- **Date of Incident** → yesterday's date
+- **What happened?** → "Fell down stairs at work"
+- **Injury Severity** → Minor
+
+That's it. The user can review, adjust, and submit as a normal form.
+
+## Next steps
+
+- Add [conditional rules](/concepts/rules) — hide fields based on other values
+- Switch to [TanStack Form adapter](/concepts/adapters) for full form control
+- Configure [confidence tiers](/concepts/confidence-tiers) to use cheaper models first
