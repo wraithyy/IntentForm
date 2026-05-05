@@ -10,9 +10,39 @@ import type {
 export interface GoogleProviderOptions {
   apiKey: string;
   model?: string;
+  retries?: number;
+  timeoutMs?: number;
 }
 
 const DEFAULT_MODEL = "gemini-1.5-flash";
+
+async function withRetry<T>(fn: () => Promise<T>, retries: number): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error("Request timed out")), ms);
+    promise.then(
+      (v) => {
+        clearTimeout(id);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(id);
+        reject(e as Error);
+      }
+    );
+  });
+}
 
 function buildFieldDescription(field: FieldDefinition): string {
   const parts: string[] = [
@@ -111,7 +141,15 @@ export function googleProvider(options: GoogleProviderOptions): AiProvider {
           generationConfig: { responseMimeType: "application/json" },
         });
 
-        const result = await model.generateContent(input.prompt);
+        const generateCall = withRetry(
+          () => model.generateContent(input.prompt),
+          options.retries ?? 0
+        );
+
+        const result = await (options.timeoutMs === undefined
+          ? generateCall
+          : withTimeout(generateCall, options.timeoutMs));
+
         raw = result.response.text();
         usageMetadata = result.response.usageMetadata;
       } catch (err) {

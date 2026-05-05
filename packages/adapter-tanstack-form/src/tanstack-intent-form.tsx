@@ -1,4 +1,4 @@
-import type { IntentFormEngine } from "@intentform/core";
+import type { FieldComponentsMap, IntentFormEngine } from "@intentform/core";
 import type {
   FieldDefinition,
   FieldOption,
@@ -9,7 +9,7 @@ import type {
   FieldValidators,
   Validator,
 } from "@tanstack/react-form";
-import type { ReactElement } from "react";
+import type { ComponentType, ReactElement } from "react";
 import { useEffect } from "react";
 import type {
   TanStackFormInstance,
@@ -18,9 +18,19 @@ import type {
 import { useTanStackIntentForm } from "./use-tanstack-intent-form.js";
 
 export interface TanStackIntentFormProps {
+  /** Optional component overrides; merged with engine-level components (prop wins). */
+  components?: FieldComponentsMap;
   engine: IntentFormEngine;
   onSubmit?: (values: Record<string, unknown>) => void | Promise<void>;
   prompt?: string;
+}
+
+/** Props passed to every custom field component registered via the components map. */
+export interface TanStackFieldComponentProps {
+  field: FieldDefinition;
+  onChange: (value: unknown) => void;
+  required: boolean;
+  value: unknown;
 }
 
 type AnyFieldApi = FieldApi<
@@ -40,10 +50,12 @@ type RequiredValidators = FieldValidators<
 >;
 
 function FieldInput({
+  errorId,
   field: fieldDef,
   fieldApi,
   required,
 }: {
+  errorId?: string;
   field: FieldDefinition;
   fieldApi: AnyFieldApi;
   required: boolean;
@@ -53,6 +65,7 @@ function FieldInput({
   if (fieldDef.type === "boolean") {
     return (
       <input
+        aria-describedby={errorId}
         checked={typeof rawValue === "boolean" ? rawValue : false}
         id={fieldDef.id}
         onBlur={fieldApi.handleBlur}
@@ -66,6 +79,7 @@ function FieldInput({
   if (fieldDef.type === "number") {
     return (
       <input
+        aria-describedby={errorId}
         id={fieldDef.id}
         onBlur={fieldApi.handleBlur}
         onChange={(e) => fieldApi.handleChange(Number(e.target.value))}
@@ -81,6 +95,7 @@ function FieldInput({
     const opts: FieldOption[] = fieldDef.options ?? [];
     return (
       <select
+        aria-describedby={errorId}
         id={fieldDef.id}
         onBlur={fieldApi.handleBlur}
         onChange={(e) => fieldApi.handleChange(e.target.value)}
@@ -109,7 +124,7 @@ function FieldInput({
       fieldApi.handleChange(next);
     };
     return (
-      <div id={fieldDef.id}>
+      <div aria-describedby={errorId} id={fieldDef.id}>
         {opts.map((o) => (
           <label key={o.value}>
             <input
@@ -129,6 +144,7 @@ function FieldInput({
   if (fieldDef.type === "textarea") {
     return (
       <textarea
+        aria-describedby={errorId}
         id={fieldDef.id}
         onBlur={fieldApi.handleBlur}
         onChange={(e) => fieldApi.handleChange(e.target.value)}
@@ -148,6 +164,7 @@ function FieldInput({
 
   return (
     <input
+      aria-describedby={errorId}
       id={fieldDef.id}
       onBlur={fieldApi.handleBlur}
       onChange={(e) => fieldApi.handleChange(e.target.value)}
@@ -182,9 +199,21 @@ function FormField({
 }): ReactElement {
   const renderChildren = (fieldApi: AnyFieldApi) => (
     <>
-      <FieldInput field={fieldDef} fieldApi={fieldApi} required={isRequired} />
+      <FieldInput
+        {...(fieldApi.state.meta.errors.length > 0
+          ? { errorId: `${fieldDef.id}-error` }
+          : {})}
+        field={fieldDef}
+        fieldApi={fieldApi}
+        required={isRequired}
+      />
       {fieldApi.state.meta.errors.length > 0 && (
-        <span data-testid={`error-${fieldDef.id}`}>
+        <span
+          aria-live="polite"
+          data-testid={`error-${fieldDef.id}`}
+          id={`${fieldDef.id}-error`}
+          role="alert"
+        >
           {fieldApi.state.meta.errors.join(", ")}
         </span>
       )}
@@ -219,6 +248,7 @@ function buildOptions(
 }
 
 export function TanStackIntentForm({
+  components,
   engine,
   onSubmit,
   prompt,
@@ -254,6 +284,12 @@ export function TanStackIntentForm({
     return <div data-testid="tanstack-intent-form-idle" />;
   }
 
+  // Engine-level components act as defaults; the prop takes priority.
+  const resolvedComponents: FieldComponentsMap = {
+    ...engine.getComponents(),
+    ...components,
+  };
+
   const visibleFields = model.fields.filter(
     (f: FieldDefinition) => !resolution.hiddenFields.has(f.id)
   );
@@ -266,16 +302,52 @@ export function TanStackIntentForm({
         form.handleSubmit().catch(() => undefined);
       }}
     >
-      {visibleFields.map((fieldDef: FieldDefinition) => (
-        <div key={fieldDef.id}>
-          <label htmlFor={fieldDef.id}>{fieldDef.label}</label>
-          <FormField
-            fieldDef={fieldDef}
-            form={form}
-            isRequired={resolution.requiredFields.has(fieldDef.id)}
-          />
+      {visibleFields.map((fieldDef: FieldDefinition) => {
+        const isRequired = resolution.requiredFields.has(fieldDef.id);
+
+        // If a custom component is registered for this field type, use it.
+        const CustomComponent = resolvedComponents[fieldDef.type] as
+          | ComponentType<TanStackFieldComponentProps>
+          | undefined;
+
+        if (CustomComponent !== undefined) {
+          return (
+            <div key={fieldDef.id}>
+              <label htmlFor={fieldDef.id}>{fieldDef.label}</label>
+              <form.Field name={fieldDef.id}>
+                {(fieldApi) => (
+                  <CustomComponent
+                    field={fieldDef}
+                    onChange={(val) =>
+                      (fieldApi as unknown as AnyFieldApi).handleChange(val)
+                    }
+                    required={isRequired}
+                    value={
+                      (fieldApi as unknown as AnyFieldApi).state.value ?? ""
+                    }
+                  />
+                )}
+              </form.Field>
+            </div>
+          );
+        }
+
+        return (
+          <div key={fieldDef.id}>
+            <label htmlFor={fieldDef.id}>{fieldDef.label}</label>
+            <FormField
+              fieldDef={fieldDef}
+              form={form}
+              isRequired={isRequired}
+            />
+          </div>
+        );
+      })}
+      {form.state.errors.filter(Boolean).length > 0 && (
+        <div data-testid="form-validation-error" role="alert">
+          {form.state.errors.filter(Boolean).join(", ")}
         </div>
-      ))}
+      )}
       <button type="submit">Submit</button>
     </form>
   );

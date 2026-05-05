@@ -11,5 +11,13 @@
         "useAwait": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.css"],
+      "linter": {
+        "enabled": false
+      }
+    }
+  ]
 }

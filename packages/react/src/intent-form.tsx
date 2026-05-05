@@ -2,7 +2,7 @@ import type { FieldDefinition, ModelDefinition } from "@intentform/shared";
 import type { FormEvent, ReactElement } from "react";
 import { useEffect } from "react";
 import { FieldRenderer } from "./field-renderer.js";
-import type { IntentFormProps } from "./types.js";
+import type { FieldComponents, IntentFormProps } from "./types.js";
 import { useIntentForm } from "./use-intent-form.js";
 
 export function IntentForm({
@@ -48,7 +48,11 @@ export function IntentForm({
     await onSubmit?.(values);
   };
 
-  const componentsProp = components === undefined ? {} : { components };
+  // Engine-level components act as defaults; the prop takes priority.
+  const resolvedComponents: FieldComponents = {
+    ...(engine.getComponents() as FieldComponents),
+    ...components,
+  };
 
   return (
     <form data-testid="intent-form" onSubmit={handleSubmit}>
@@ -56,7 +60,7 @@ export function IntentForm({
         <div key={field.id}>
           <label htmlFor={field.id}>{field.label}</label>
           <FieldRenderer
-            {...componentsProp}
+            components={resolvedComponents}
             field={field}
             onChange={(val) => updateValue(field.id, val)}
             required={resolution.requiredFields.has(field.id)}

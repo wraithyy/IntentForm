@@ -1,5 +1,7 @@
-import type { FormAdapter } from "@intentform/core";
-
-export function reactHookFormAdapter(): FormAdapter {
-  return { id: "react-hook-form" };
-}
+export type { RHFIntentFormProps } from "./rhf-intent-form.js";
+export { RHFIntentForm } from "./rhf-intent-form.js";
+export type {
+  UseRHFIntentFormOptions,
+  UseRHFIntentFormReturn,
+} from "./use-rhf-intent-form.js";
+export { useRHFIntentForm } from "./use-rhf-intent-form.js";

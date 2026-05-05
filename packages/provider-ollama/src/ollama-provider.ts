@@ -9,6 +9,8 @@ import type {
 export interface OllamaProviderOptions {
   baseUrl?: string;
   model: string;
+  retries?: number;
+  timeoutMs?: number;
 }
 
 const DEFAULT_BASE_URL = "http://localhost:11434";
@@ -36,6 +38,34 @@ interface StructuredOutput {
   fieldRelevance: Record<string, number>;
   model: string;
   values: Record<string, unknown>;
+}
+
+async function withRetry<T>(fn: () => Promise<T>, retries: number): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error("Request timed out")), ms);
+    promise.then(
+      (v) => {
+        clearTimeout(id);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(id);
+        reject(e as Error);
+      }
+    );
+  });
 }
 
 function buildFieldDescription(field: FieldDefinition): string {
@@ -128,11 +158,19 @@ export function ollamaProvider(options: OllamaProviderOptions): AiProvider {
 
       let res: Response;
       try {
-        res = await fetch(`${baseUrl}/api/chat`, {
-          body: JSON.stringify(body),
-          headers: { "Content-Type": "application/json" },
-          method: "POST",
-        });
+        const fetchCall = withRetry(
+          () =>
+            fetch(`${baseUrl}/api/chat`, {
+              body: JSON.stringify(body),
+              headers: { "Content-Type": "application/json" },
+              method: "POST",
+            }),
+          options.retries ?? 0
+        );
+
+        res = await (options.timeoutMs === undefined
+          ? fetchCall
+          : withTimeout(fetchCall, options.timeoutMs));
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         throw new Error(`Ollama provider error: ${message}`);

@@ -14,7 +14,6 @@ function makeRule(
   target: string
 ): Rule {
   return {
-    // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
     then: { effect, target },
     when: { field, value },
   };

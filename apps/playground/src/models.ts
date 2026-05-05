@@ -1,4 +1,6 @@
 import type { ModelDefinition } from "@intentform/shared";
+import { boolean, number, object, optional, picklist, string } from "valibot";
+import { z } from "zod";
 
 export const contactFormModel: ModelDefinition = {
   id: "contactForm",
@@ -60,6 +62,14 @@ export const contactFormModel: ModelDefinition = {
       then: { effect: "hide", target: "phone" },
     },
   ],
+  schema: z.object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().optional(),
+    subject: z.string().optional(),
+    message: z.string().min(1, "Message is required"),
+    urgency: z.enum(["low", "medium", "high"]).optional(),
+  }),
 };
 
 export const accidentReportModel: ModelDefinition = {
@@ -146,4 +156,14 @@ export const accidentReportModel: ModelDefinition = {
       then: { effect: "hide", target: "witnessPhone" },
     },
   ],
+  schema: object({
+    incidentDate: string(),
+    location: string(),
+    description: string(),
+    injured: optional(boolean()),
+    severity: optional(picklist(["low", "medium", "high", "critical"])),
+    vehicleCount: optional(number()),
+    witnessName: optional(string()),
+    witnessPhone: optional(string()),
+  }),
 };

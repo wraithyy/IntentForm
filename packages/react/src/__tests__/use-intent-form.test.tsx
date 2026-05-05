@@ -16,11 +16,11 @@ const mockResolution: IntentResolution = {
 function makeEngine(overrides?: Partial<IntentFormEngine>): IntentFormEngine {
   return {
     config: {
-      adapter: { id: "test" },
       models: [],
       provider: { generateStructured: vi.fn() },
     },
     getModels: vi.fn().mockReturnValue([]),
+    getComponents: vi.fn().mockReturnValue({}),
     resolveIntent: vi.fn().mockResolvedValue(mockResolution),
     ...overrides,
   };

@@ -6,7 +6,6 @@ describe("when", () => {
   it("produces a hide rule", () => {
     const rule = when("urgency", "high").hide("phone");
     const expected: Rule = {
-      // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
       then: { effect: "hide", target: "phone" },
       when: { field: "urgency", value: "high" },
     };
@@ -16,7 +15,6 @@ describe("when", () => {
   it("produces a show rule", () => {
     const rule = when("urgency", "low").show("phone");
     const expected: Rule = {
-      // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
       then: { effect: "show", target: "phone" },
       when: { field: "urgency", value: "low" },
     };
@@ -26,7 +24,6 @@ describe("when", () => {
   it("produces a require rule", () => {
     const rule = when("injured", true).require("severity");
     const expected: Rule = {
-      // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
       then: { effect: "require", target: "severity" },
       when: { field: "injured", value: true },
     };
@@ -36,7 +33,6 @@ describe("when", () => {
   it("produces an unrequire rule", () => {
     const rule = when("injured", false).unrequire("severity");
     const expected: Rule = {
-      // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
       then: { effect: "unrequire", target: "severity" },
       when: { field: "injured", value: false },
     };

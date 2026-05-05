@@ -13,3 +13,6 @@ vite.config.d.ts.map
 # Astro docs
 apps/docs/.astro/
 apps/docs/src/content/docs/api/
+
+# Playwright MCP artifacts
+.playwright-mcp/

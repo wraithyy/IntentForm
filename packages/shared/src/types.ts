@@ -1,3 +1,5 @@
+import type { StandardSchemaV1 } from "./standard-schema.js";
+
 export type FieldType =
   | "text"
   | "number"
@@ -14,6 +16,7 @@ export interface FieldOption {
   value: string;
 }
 
+/** Describes a single form field rendered in the UI. */
 export interface FieldDefinition {
   description?: string;
   id: string;
@@ -41,12 +44,16 @@ export interface Rule {
   when: RuleCondition;
 }
 
-export interface ModelDefinition {
+/** Defines a form model with its schema, fields, and conditional rules. */
+export interface ModelDefinition<
+  TSchema extends StandardSchemaV1 = StandardSchemaV1,
+> {
   description: string;
   fields: FieldDefinition[];
   id: string;
   label: string;
   rules: Rule[];
+  schema?: TSchema;
   useCases: string[];
 }
 
@@ -55,6 +62,10 @@ export interface AiProviderInput {
   models: ModelDefinition[];
   prompt: string;
 }
+
+export type InferSchemaOutput<
+  TSchema extends StandardSchemaV1 = StandardSchemaV1,
+> = StandardSchemaV1.InferOutput<TSchema>;
 
 export interface AiProviderOutput {
   confidence: number;
@@ -66,6 +77,7 @@ export interface AiProviderOutput {
   };
 }
 
+/** Contract for AI providers that generate structured form output from natural language. */
 export interface AiProvider {
   generateStructured(input: AiProviderInput): Promise<AiProviderOutput>;
 }
@@ -81,12 +93,25 @@ export interface RuleEngineResult {
   requiredFields: ReadonlySet<string>;
 }
 
-export interface IntentResolution {
+/** The resolved output of an intent resolution pass, including prefilled values and rule effects. */
+export interface IntentResolution<
+  TValues extends Record<string, unknown> = Record<string, unknown>,
+> {
   confidence: number;
   fieldRelevance: Record<string, number>;
   hiddenFields: ReadonlySet<string>;
+  latencyMs?: number;
   modelId: string;
   requiredFields: ReadonlySet<string>;
   tierId?: string;
-  values: Record<string, unknown>;
+  usage?: { cost?: number; tokensIn: number; tokensOut: number };
+  validationIssues?: readonly StandardSchemaV1.Issue[];
+  values: TValues;
+}
+
+/** Type-safe helper that returns the model definition unchanged (enables generic type inference). */
+export function defineModel<TSchema extends StandardSchemaV1>(
+  def: ModelDefinition<TSchema>
+): ModelDefinition<TSchema> {
+  return def;
 }

@@ -1,3 +1,4 @@
+export type { FieldComponentsMap } from "@intentform/core";
 export { FieldRenderer } from "./field-renderer.js";
 export { IntentForm } from "./intent-form.js";
 export type {

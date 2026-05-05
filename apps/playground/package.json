@@ -14,7 +14,9 @@
     "@intentform/shared": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "@intentform/provider-openai": "workspace:*"
+    "@intentform/provider-openai": "workspace:*",
+    "valibot": "^1.0.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

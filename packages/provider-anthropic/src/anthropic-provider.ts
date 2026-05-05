@@ -10,9 +10,39 @@ import type {
 export interface AnthropicProviderOptions {
   apiKey: string;
   model?: string;
+  retries?: number;
+  timeoutMs?: number;
 }
 
 const DEFAULT_MODEL = "claude-3-5-haiku-20241022";
+
+async function withRetry<T>(fn: () => Promise<T>, retries: number): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error("Request timed out")), ms);
+    promise.then(
+      (v) => {
+        clearTimeout(id);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(id);
+        reject(e as Error);
+      }
+    );
+  });
+}
 
 function buildFieldDescription(field: FieldDefinition): string {
   const parts: string[] = [
@@ -104,12 +134,20 @@ export function anthropicProvider(
       let response: Anthropic.Message;
 
       try {
-        response = await client.messages.create({
-          model,
-          max_tokens: 1024,
-          system: systemPrompt,
-          messages: [{ role: "user", content: input.prompt }],
-        });
+        const createCall = withRetry(
+          () =>
+            client.messages.create({
+              model,
+              max_tokens: 1024,
+              system: systemPrompt,
+              messages: [{ role: "user", content: input.prompt }],
+            }),
+          options.retries ?? 0
+        );
+
+        response = await (options.timeoutMs === undefined
+          ? createCall
+          : withTimeout(createCall, options.timeoutMs));
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         throw new Error(`Anthropic provider error: ${message}`);

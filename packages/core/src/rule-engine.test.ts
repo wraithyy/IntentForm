@@ -15,7 +15,6 @@ const fields: FieldDefinition[] = [
 
 const hideOtherPlateRule: Rule = {
   when: { field: "accidentType", value: "animal" },
-  // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
   then: { effect: "hide", target: "otherVehiclePlate" },
 };
 
@@ -38,12 +37,10 @@ describe("evaluateRules", () => {
     const rules: Rule[] = [
       {
         when: { field: "accidentType", value: "animal" },
-        // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
         then: { effect: "hide", target: "otherVehiclePlate" },
       },
       {
         when: { field: "accidentType", value: "animal" },
-        // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
         then: { effect: "show", target: "otherVehiclePlate" },
       },
     ];
@@ -55,7 +52,6 @@ describe("evaluateRules", () => {
     const rules: Rule[] = [
       {
         when: { field: "accidentType", value: "collision" },
-        // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
         then: { effect: "require", target: "otherVehiclePlate" },
       },
     ];
@@ -67,7 +63,6 @@ describe("evaluateRules", () => {
     const rules: Rule[] = [
       {
         when: { field: "accidentType", value: "animal" },
-        // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
         then: { effect: "unrequire", target: "accidentType" },
       },
     ];
@@ -90,7 +85,6 @@ describe("evaluateRules", () => {
     const rules: Rule[] = [
       {
         when: { field: "otherVehiclePlate", value: "ABC123" },
-        // biome-ignore lint/suspicious/noThenProperty: Rule interface uses `then` for conditional action
         then: { effect: "hide", target: "accidentType" },
       },
     ];

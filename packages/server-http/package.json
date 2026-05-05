@@ -1,0 +1,57 @@
+{
+  "name": "@intentform/server-http",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "intentform-server": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "dev": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@intentform/core": "workspace:*",
+    "@intentform/server": "workspace:*",
+    "@intentform/shared": "workspace:*",
+    "zod": "^3.23.0"
+  },
+  "peerDependencies": {
+    "@intentform/provider-openai": "workspace:*",
+    "@intentform/provider-anthropic": "workspace:*",
+    "@intentform/provider-google": "workspace:*",
+    "@intentform/provider-ollama": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@intentform/provider-openai": {
+      "optional": true
+    },
+    "@intentform/provider-anthropic": {
+      "optional": true
+    },
+    "@intentform/provider-google": {
+      "optional": true
+    },
+    "@intentform/provider-ollama": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@intentform/provider-openai": "workspace:*",
+    "typescript": "^5.4.5",
+    "vitest": "^2.0.0",
+    "tsx": "^4.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

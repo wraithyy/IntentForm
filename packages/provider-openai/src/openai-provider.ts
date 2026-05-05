@@ -11,9 +11,39 @@ export interface OpenAiProviderOptions {
   apiKey: string;
   dangerouslyAllowBrowser?: boolean;
   model?: string;
+  retries?: number;
+  timeoutMs?: number;
 }
 
 const DEFAULT_MODEL = "gpt-4o-mini";
+
+async function withRetry<T>(fn: () => Promise<T>, retries: number): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error("Request timed out")), ms);
+    promise.then(
+      (v) => {
+        clearTimeout(id);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(id);
+        reject(e as Error);
+      }
+    );
+  });
+}
 
 function buildFieldDescription(field: FieldDefinition): string {
   const parts: string[] = [
@@ -106,15 +136,23 @@ export function openaiProvider(options: OpenAiProviderOptions): AiProvider {
       let response: OpenAI.Chat.Completions.ChatCompletion;
 
       try {
-        response = await client.chat.completions.create({
-          model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: input.prompt },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.2,
-        });
+        const createCall = withRetry(
+          () =>
+            client.chat.completions.create({
+              model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: input.prompt },
+              ],
+              response_format: { type: "json_object" },
+              temperature: 0.2,
+            }),
+          options.retries ?? 0
+        );
+
+        response = await (options.timeoutMs === undefined
+          ? createCall
+          : withTimeout(createCall, options.timeoutMs));
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         throw new Error(`OpenAI provider error: ${message}`);

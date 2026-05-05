@@ -10,7 +10,7 @@ export {
 export type { TierResult } from "./tier-router.js";
 export { routeThroughTiers } from "./tier-router.js";
 export type {
-  FormAdapter,
+  FieldComponentsMap,
   IntentFormConfig,
   IntentFormEngine,
 } from "./types.js";

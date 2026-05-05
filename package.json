@@ -11,17 +11,46 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish",
-    "prepare": "husky"
+    "prepare": "husky",
+    "size": "size-limit"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
     "@changesets/cli": "^2.27.7",
+    "@size-limit/preset-small-lib": "^11.0.0",
     "husky": "^9.1.4",
     "lint-staged": "^15.2.9",
+    "size-limit": "^11.0.0",
     "typescript": "^5.5.4",
     "ultracite": "^7.6.2",
     "vitest": "^2.0.5"
   },
+  "size-limit": [
+    {
+      "path": "packages/core/dist/index.js",
+      "limit": "12 KB"
+    },
+    {
+      "path": "packages/react/dist/index.js",
+      "limit": "6 KB"
+    },
+    {
+      "path": "packages/shared/dist/index.js",
+      "limit": "4 KB"
+    },
+    {
+      "path": "packages/adapter-tanstack-form/dist/index.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "packages/adapter-react-hook-form/dist/index.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "packages/server/dist/index.js",
+      "limit": "4 KB"
+    }
+  ],
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc,css}": [
       "ultracite fix"

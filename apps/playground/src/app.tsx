@@ -1,10 +1,9 @@
-import { createIntentForm, type FormAdapter } from "@intentform/core";
+import { createIntentForm } from "@intentform/core";
 import { openaiProvider } from "@intentform/provider-openai";
 import { IntentForm } from "@intentform/react";
 import { useMemo, useState } from "react";
 import { accidentReportModel, contactFormModel } from "./models.js";
 
-const mockAdapter: FormAdapter = { id: "mock" };
 const MODELS = [contactFormModel, accidentReportModel];
 
 export function App() {
@@ -23,7 +22,6 @@ export function App() {
   const engine = useMemo(
     () =>
       createIntentForm({
-        adapter: mockAdapter,
         models: MODELS,
         provider: openaiProvider({ apiKey, dangerouslyAllowBrowser: true }),
       }),
