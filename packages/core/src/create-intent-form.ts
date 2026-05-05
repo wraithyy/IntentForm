@@ -1,4 +1,5 @@
 import type {
+  AiProviderInput,
   AiProviderOutput,
   IntentResolution,
   StandardSchemaV1,
@@ -41,6 +42,24 @@ function validateConfig(config: IntentFormConfig): void {
   }
 }
 
+async function fetchProviderOutput(
+  config: IntentFormConfig,
+  input: AiProviderInput
+): Promise<{ output: AiProviderOutput; tierId?: string }> {
+  if (config.tiers && config.tiers.length > 0) {
+    const result = await routeThroughTiers(
+      config.tiers,
+      input,
+      extractConfidence
+    );
+    return { output: result.output, tierId: result.tierId };
+  }
+  if (!config.provider) {
+    throw new IntentFormError("PROVIDER", "No provider configured");
+  }
+  return { output: await config.provider.generateStructured(input) };
+}
+
 /** Creates an IntentForm engine from the given configuration. */
 export function createIntentForm(config: IntentFormConfig): IntentFormEngine {
   validateConfig(config);
@@ -77,21 +96,7 @@ export function createIntentForm(config: IntentFormConfig): IntentFormEngine {
         try {
           const input = { prompt, models: registry.getAll() };
 
-          let output: AiProviderOutput;
-          let tierId: string | undefined;
-
-          if (config.tiers && config.tiers.length > 0) {
-            const result = await routeThroughTiers(
-              config.tiers,
-              input,
-              extractConfidence
-            );
-            output = result.output;
-            tierId = result.tierId;
-          } else {
-            // provider is guaranteed by validateConfig
-            output = await config.provider?.generateStructured(input);
-          }
+          const { output, tierId } = await fetchProviderOutput(config, input);
 
           const parsed = parseStructuredOutput(output.data);
 
