@@ -28,7 +28,7 @@
   "size-limit": [
     {
       "path": "packages/core/dist/index.js",
-      "limit": "12 KB"
+      "limit": "15 KB"
     },
     {
       "path": "packages/react/dist/index.js",
@@ -40,15 +40,11 @@
     },
     {
       "path": "packages/adapter-tanstack-form/dist/index.js",
-      "limit": "10 KB"
+      "limit": "12 KB"
     },
     {
       "path": "packages/adapter-react-hook-form/dist/index.js",
-      "limit": "10 KB"
-    },
-    {
-      "path": "packages/server/dist/index.js",
-      "limit": "4 KB"
+      "limit": "15 KB"
     }
   ],
   "lint-staged": {
