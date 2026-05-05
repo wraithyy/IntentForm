@@ -4,13 +4,15 @@ import react from '@astrojs/react'
 import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc'
 
 export default defineConfig({
+  site: 'https://wraithyy.github.io',
+  base: '/IntentForm',
   integrations: [
     react(),
     starlight({
       title: 'IntentForm',
       description: 'Natural language → validated forms via pluggable AI providers',
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/wraithyy/intentform' },
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/wraithyy/IntentForm' },
       ],
       sidebar: [
         {
