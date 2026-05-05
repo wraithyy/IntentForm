@@ -3,6 +3,8 @@
 > Transform natural language intent into dynamic, validated forms.
 > React-first · Provider-agnostic · TypeScript-native · Standard Schema
 
+**[Documentation](https://wraithyy.github.io/IntentForm/) · [Playground](https://wraithyy.github.io/IntentForm/playground/)**
+
 ```tsx
 const engine = createIntentForm({
   provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY }),
