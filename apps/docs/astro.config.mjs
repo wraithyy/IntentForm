@@ -1,58 +1,63 @@
-import { defineConfig } from 'astro/config'
-import starlight from '@astrojs/starlight'
-import react from '@astrojs/react'
-import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc'
+import react from "@astrojs/react";
+import starlight from "@astrojs/starlight";
+import { defineConfig } from "astro/config";
+import starlightTypeDoc, { typeDocSidebarGroup } from "starlight-typedoc";
 
 export default defineConfig({
-  site: 'https://wraithyy.github.io',
-  base: '/IntentForm',
+  site: "https://wraithyy.github.io",
+  base: "/IntentForm",
   integrations: [
     react(),
     starlight({
-      title: 'IntentForm',
-      description: 'Natural language → validated forms via pluggable AI providers',
+      title: "IntentForm",
+      description:
+        "Natural language → validated forms via pluggable AI providers",
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/wraithyy/IntentForm' },
+        {
+          icon: "github",
+          label: "GitHub",
+          href: "https://github.com/wraithyy/IntentForm",
+        },
       ],
       sidebar: [
         {
-          label: 'Start',
+          label: "Start",
           items: [
-            { label: 'Overview', link: '/' },
-            { label: 'Quick Start', link: '/quick-start/' },
+            { label: "Overview", link: "/" },
+            { label: "Quick Start", link: "/quick-start/" },
           ],
         },
         {
-          label: 'Concepts',
-          autogenerate: { directory: 'concepts' },
+          label: "Concepts",
+          autogenerate: { directory: "concepts" },
         },
         {
-          label: 'Recipes',
-          autogenerate: { directory: 'recipes' },
+          label: "Recipes",
+          autogenerate: { directory: "recipes" },
         },
-        { label: 'Playground', link: '/playground/' },
+        { label: "Playground", link: "/playground/" },
         typeDocSidebarGroup,
       ],
       plugins: [
         starlightTypeDoc({
           entryPoints: [
-            '../../packages/core/src/index.ts',
-            '../../packages/react/src/index.ts',
-            '../../packages/shared/src/index.ts',
+            "../../packages/core/src/index.ts",
+            "../../packages/react/src/index.ts",
+            "../../packages/shared/src/index.ts",
           ],
-          tsconfig: './tsconfig.typedoc.json',
-          output: 'api',
+          tsconfig: "./tsconfig.typedoc.json",
+          output: "api",
           sidebar: {
-            label: 'API Reference',
+            label: "API Reference",
             collapsed: true,
           },
           typeDocOptions: {
             skipErrorChecking: true,
-            entryPointStrategy: 'resolve',
+            entryPointStrategy: "resolve",
           },
         }),
       ],
-      customCss: ['./src/styles/custom.css'],
+      customCss: ["./src/styles/custom.css"],
     }),
   ],
-})
+});
