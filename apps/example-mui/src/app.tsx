@@ -126,7 +126,7 @@ export function App() {
                   <div key={field.id}>
                     <CustomComponent
                       field={field}
-                      onChange={(val) => form.setValue(field.id, val)}
+                      onChange={(val: unknown) => form.setValue(field.id, val)}
                       required={resolution.requiredFields.has(field.id)}
                       value={form.watch(field.id) ?? ""}
                     />

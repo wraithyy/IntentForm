@@ -1,5 +1,5 @@
 import type { FieldRendererProps } from "@intentform/react";
-import type { FieldType } from "@intentform/shared";
+import type { FieldOption, FieldType } from "@intentform/shared";
 import {
   Box,
   Checkbox,
@@ -135,7 +135,7 @@ export function MuiSelectField({
         select
         value={typeof value === "string" ? value : ""}
       >
-        {(field.options ?? []).map((option) => (
+        {(field.options ?? []).map((option: FieldOption) => (
           <MenuItem key={option.value} value={option.value}>
             {option.label}
           </MenuItem>
@@ -161,7 +161,7 @@ export function MuiMultiselectField({
   return (
     <Box mb={2}>
       <FormControl fullWidth required={required}>
-        {(field.options ?? []).map((option) => (
+        {(field.options ?? []).map((option: FieldOption) => (
           <FormControlLabel
             control={
               <Checkbox

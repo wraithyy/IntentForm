@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@intentform/adapter-react-hook-form": "workspace:*",
+    "@intentform/react": "workspace:*",
     "@intentform/core": "workspace:*",
     "@intentform/provider-openai": "workspace:*",
     "@intentform/shared": "workspace:*",
