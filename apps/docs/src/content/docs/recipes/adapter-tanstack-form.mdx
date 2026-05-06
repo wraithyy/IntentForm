@@ -1,0 +1,97 @@
+---
+title: TanStack Form adapter
+description: Render IntentForm fields using TanStack Form field components.
+---
+
+Define a `fieldComponents` map where each field renders via TanStack Form's `form.Field`, then pass it to `<IntentForm />`. IntentForm drives the form; TanStack Form handles field-level reactivity and validation.
+
+## Install
+
+```bash
+pnpm add @intentform/core @intentform/react @tanstack/react-form zod
+```
+
+## Field components map
+
+```typescript
+// src/field-components.tsx
+import type { FieldComponentsMap } from '@intentform/react'
+import type { ReactFormExtendedApi } from '@tanstack/react-form'
+
+export function makeTanstackComponents(
+  form: ReactFormExtendedApi<any, any>
+): FieldComponentsMap {
+  return {
+    text: ({ field, value, onChange }) => (
+      <form.Field name={field.id}>
+        {(f) => (
+          <div>
+            <label htmlFor={field.id}>{field.label}</label>
+            <input
+              id={field.id}
+              value={value ?? f.state.value ?? ''}
+              onChange={(e) => {
+                f.handleChange(e.target.value)
+                onChange(e.target.value)
+              }}
+            />
+          </div>
+        )}
+      </form.Field>
+    ),
+
+    select: ({ field, value, onChange }) => (
+      <form.Field name={field.id}>
+        {(f) => (
+          <div>
+            <label htmlFor={field.id}>{field.label}</label>
+            <select
+              id={field.id}
+              value={value ?? f.state.value ?? ''}
+              onChange={(e) => {
+                f.handleChange(e.target.value)
+                onChange(e.target.value)
+              }}
+            >
+              {field.options?.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </form.Field>
+    ),
+  }
+}
+```
+
+## Wire up
+
+```typescript
+// src/App.tsx
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { openaiProvider } from '@intentform/provider-openai'
+import { useForm } from '@tanstack/react-form'
+import { makeTanstackComponents } from './field-components'
+import { accidentReportModel } from './models/accident-report'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [accidentReportModel],
+})
+
+export default function App() {
+  const form = useForm({
+    defaultValues: { location: '', date: '', injuryType: '', bodyPart: '' },
+    onSubmit: ({ value }) => console.log(value),
+  })
+
+  return (
+    <IntentForm
+      engine={engine}
+      fieldComponents={makeTanstackComponents(form)}
+    />
+  )
+}
+```

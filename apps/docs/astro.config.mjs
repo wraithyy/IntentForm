@@ -41,7 +41,42 @@ export default defineConfig({
         },
         {
           label: "Recipes",
-          autogenerate: { directory: "recipes" },
+          items: [
+            {
+              label: "Server integration",
+              items: [
+                { label: "Keep API key server-side", link: "/recipes/server-side-key/" },
+                { label: "TanStack Start", link: "/recipes/server-tanstack-start/" },
+                { label: "Next.js", link: "/recipes/server-next/" },
+                { label: "Hono", link: "/recipes/server-hono/" },
+                { label: "HTTP sidecar", link: "/recipes/server-http-sidecar/" },
+                { label: "Spring Boot", link: "/recipes/server-spring/" },
+              ],
+            },
+            {
+              label: "Form adapters",
+              items: [
+                { label: "TanStack Form", link: "/recipes/adapter-tanstack-form/" },
+                { label: "React Hook Form", link: "/recipes/adapter-react-hook-form/" },
+              ],
+            },
+            {
+              label: "UI libraries",
+              items: [
+                { label: "Native HTML", link: "/recipes/ui-native-html/" },
+                { label: "shadcn/ui", link: "/recipes/ui-shadcn/" },
+                { label: "MUI", link: "/recipes/ui-mui/" },
+                { label: "Mantine", link: "/recipes/ui-mantine/" },
+              ],
+            },
+            {
+              label: "Examples",
+              items: [
+                { label: "Accident report", link: "/recipes/accident-report/" },
+                { label: "Travel booking", link: "/recipes/travel-booking/" },
+              ],
+            },
+          ],
         },
         { label: "Playground", link: "/playground/" },
         typeDocSidebarGroup,

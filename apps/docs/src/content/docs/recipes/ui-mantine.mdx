@@ -1,0 +1,92 @@
+---
+title: Mantine
+description: Render IntentForm fields using Mantine TextInput, NumberInput, Select, and Textarea components.
+---
+
+Map IntentForm's field types to [Mantine](https://mantine.dev) components via the `fieldComponents` prop.
+
+## Install
+
+```bash
+pnpm add @intentform/core @intentform/react zod @mantine/core @mantine/hooks
+```
+
+Make sure `MantineProvider` wraps your app root as usual.
+
+## Field components map
+
+```typescript
+// src/field-components.tsx
+import { TextInput, NumberInput, Select, Textarea } from '@mantine/core'
+import type { FieldComponentsMap } from '@intentform/react'
+
+export const mantineComponents: FieldComponentsMap = {
+  text: ({ field, value, onChange }) => (
+    <TextInput
+      id={field.id}
+      label={field.label}
+      value={value ?? ''}
+      onChange={(e) => onChange(e.currentTarget.value)}
+    />
+  ),
+
+  number: ({ field, value, onChange }) => (
+    <NumberInput
+      id={field.id}
+      label={field.label}
+      value={value ?? ''}
+      onChange={(val) => onChange(val)}
+    />
+  ),
+
+  select: ({ field, value, onChange }) => (
+    <Select
+      id={field.id}
+      label={field.label}
+      value={value ?? null}
+      onChange={(val) => onChange(val ?? '')}
+      data={field.options?.map((opt) => ({ value: opt.value, label: opt.label })) ?? []}
+    />
+  ),
+
+  textarea: ({ field, value, onChange }) => (
+    <Textarea
+      id={field.id}
+      label={field.label}
+      value={value ?? ''}
+      onChange={(e) => onChange(e.currentTarget.value)}
+      autosize
+      minRows={3}
+    />
+  ),
+}
+```
+
+## Wire up
+
+```typescript
+// src/App.tsx
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { openaiProvider } from '@intentform/provider-openai'
+import { mantineComponents } from './field-components'
+import { accidentReportModel } from './models/accident-report'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [accidentReportModel],
+})
+
+export default function App() {
+  return (
+    <IntentForm
+      engine={engine}
+      fieldComponents={mantineComponents}
+    />
+  )
+}
+```
+
+:::tip
+Mantine's `NumberInput` returns `string | number` depending on user input — the `onChange={(val) => onChange(val)}` above passes through whatever Mantine provides, which is fine since IntentForm coerces via Zod at submit time.
+:::

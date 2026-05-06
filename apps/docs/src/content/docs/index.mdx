@@ -4,7 +4,7 @@ description: Transform natural language intent into dynamic, validated forms. AI
 template: splash
 hero:
   title: "Intent → Form. Done."
-  tagline: "Users type what they need. IntentForm picks the right form, pre-fills every field, and sends your backend the exact JSON it already expects."
+  tagline: "Users describe what they need. IntentForm picks the right form, pre-fills every field, and sends your backend the exact JSON it already expects."
   actions:
     - text: Quick Start
       link: ./quick-start/
@@ -16,60 +16,6 @@ hero:
 ---
 
 import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
-
-## How it works
-
-```mermaid
-flowchart TB
-  subgraph U["User"]
-    P["\"I slipped on a wet floor at the warehouse\nyesterday around 3pm. Minor bruise on my arm.\""]
-  end
-
-  subgraph E["IntentForm engine"]
-    direction TB
-    PARSE["engine.parse(intent)"]
-    AI["AI provider\n(OpenAI · Anthropic · Gemini · Ollama)"]
-    SEL{"Model registry\n10+ models"}
-    PARSE --> AI --> SEL
-  end
-
-  subgraph O["Structured output"]
-    OUT["model: 'accidentReport'\nconfidence: 0.94\nvalues:\n  location: 'warehouse'\n  incidentDate: '2026-05-05'\n  description: 'slipped on wet floor'\n  injuryType: 'minor'"]
-  end
-
-  subgraph F["Rendered form"]
-    FORM["IntentForm\nfields prefilled · rules applied\nuser reviews → submit"]
-  end
-
-  P -->|"natural language"| PARSE
-  SEL -->|"JSON only"| OUT
-  OUT -->|"Zod-validated"| FORM
-  FORM -.->|"POST /api/claims"| API[("Your existing\nbackend")]
-
-  classDef user fill:#1e1e2e,stroke:#cba6f7,color:#cdd6f4,stroke-width:2px
-  classDef engine fill:#181825,stroke:#b4befe,color:#cdd6f4,stroke-width:2px
-  classDef output fill:#181825,stroke:#a6e3a1,color:#cdd6f4,stroke-width:2px
-  classDef form fill:#181825,stroke:#89dceb,color:#cdd6f4,stroke-width:2px
-  classDef api fill:#313244,stroke:#f38ba8,color:#cdd6f4,stroke-width:2px
-  class P user
-  class PARSE,AI,SEL engine
-  class OUT output
-  class FORM form
-  class API api
-```
-
-<CardGrid>
-  <LinkCard
-    title="Start in 5 minutes"
-    href="./quick-start/"
-    description="Install, wire one provider, render IntentForm, ship."
-  />
-  <LinkCard
-    title="Try it live"
-    href="./playground/"
-    description="Type any intent in the browser, watch the form auto-fill."
-  />
-</CardGrid>
 
 ## Why IntentForm
 
@@ -85,6 +31,29 @@ flowchart TB
   <Card title="Models map 1:1 to your API" icon="puzzle">
     Define one `ModelDefinition` per backend entity. IntentForm's engine resolves intent to the right model and extracts structured values that match your existing schema — no new endpoints, no new storage format.
   </Card>
+</CardGrid>
+
+## How it works
+
+```mermaid
+flowchart LR
+  A["User intent\n(natural language)"] -->|"engine.parse()"| B["AI provider"]
+  B -->|"JSON only"| C{"Model registry"}
+  C -->|"Zod-validated"| D["Pre-filled form\nready to review"]
+  D -.->|"POST /api/..."| E[("Your backend")]
+```
+
+<CardGrid>
+  <LinkCard
+    title="Start in 5 minutes"
+    href="./quick-start/"
+    description="Install, wire one provider, render IntentForm, ship."
+  />
+  <LinkCard
+    title="Try it live"
+    href="./playground/"
+    description="Type any intent in the browser, watch the form auto-fill."
+  />
 </CardGrid>
 
 ## Get started in 30 seconds

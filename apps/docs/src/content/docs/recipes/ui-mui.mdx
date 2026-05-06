@@ -1,0 +1,109 @@
+---
+title: MUI (Material UI)
+description: Render IntentForm fields using MUI TextField, Select, and MenuItem components.
+---
+
+Map IntentForm's field types to [MUI](https://mui.com) components via the `fieldComponents` prop.
+
+## Install
+
+```bash
+pnpm add @intentform/core @intentform/react zod @mui/material @emotion/react @emotion/styled
+```
+
+## Field components map
+
+```typescript
+// src/field-components.tsx
+import TextField from '@mui/material/TextField'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import type { FieldComponentsMap } from '@intentform/react'
+
+export const muiComponents: FieldComponentsMap = {
+  text: ({ field, value, onChange }) => (
+    <TextField
+      id={field.id}
+      label={field.label}
+      value={value ?? ''}
+      onChange={(e) => onChange(e.target.value)}
+      fullWidth
+      size="small"
+    />
+  ),
+
+  number: ({ field, value, onChange }) => (
+    <TextField
+      id={field.id}
+      label={field.label}
+      type="number"
+      value={value ?? ''}
+      onChange={(e) => onChange(Number(e.target.value))}
+      fullWidth
+      size="small"
+    />
+  ),
+
+  select: ({ field, value, onChange }) => (
+    <FormControl fullWidth size="small">
+      <InputLabel id={`${field.id}-label`}>{field.label}</InputLabel>
+      <Select
+        labelId={`${field.id}-label`}
+        value={value ?? ''}
+        label={field.label}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {field.options?.map((opt) => (
+          <MenuItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  ),
+
+  textarea: ({ field, value, onChange }) => (
+    <TextField
+      id={field.id}
+      label={field.label}
+      value={value ?? ''}
+      onChange={(e) => onChange(e.target.value)}
+      multiline
+      minRows={3}
+      fullWidth
+      size="small"
+    />
+  ),
+}
+```
+
+## Wire up
+
+```typescript
+// src/App.tsx
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { openaiProvider } from '@intentform/provider-openai'
+import { muiComponents } from './field-components'
+import { accidentReportModel } from './models/accident-report'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [accidentReportModel],
+})
+
+export default function App() {
+  return (
+    <IntentForm
+      engine={engine}
+      fieldComponents={muiComponents}
+    />
+  )
+}
+```
+
+:::note
+The `size="small"` prop keeps MUI fields compact. Remove it if your app uses the default `medium` size globally.
+:::

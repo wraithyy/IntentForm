@@ -1,0 +1,107 @@
+---
+title: React Hook Form adapter
+description: Render IntentForm fields using React Hook Form Controller components.
+---
+
+Define a `fieldComponents` map where each field uses RHF's `Controller` for controlled input, then pass it to `<IntentForm />`. IntentForm handles form state; RHF wires validation per field.
+
+## Install
+
+```bash
+pnpm add @intentform/core @intentform/react react-hook-form zod @hookform/resolvers
+```
+
+## Field components map
+
+```typescript
+// src/field-components.tsx
+import { Controller, useFormContext } from 'react-hook-form'
+import type { FieldComponentsMap } from '@intentform/react'
+
+export const rhfComponents: FieldComponentsMap = {
+  text: ({ field, value, onChange }) => {
+    const { control } = useFormContext()
+    return (
+      <Controller
+        control={control}
+        name={field.id}
+        defaultValue={value ?? ''}
+        render={({ field: f, fieldState }) => (
+          <div>
+            <label htmlFor={field.id}>{field.label}</label>
+            <input
+              {...f}
+              id={field.id}
+              value={value ?? f.value}
+              onChange={(e) => {
+                f.onChange(e)
+                onChange(e.target.value)
+              }}
+            />
+            {fieldState.error && <span>{fieldState.error.message}</span>}
+          </div>
+        )}
+      />
+    )
+  },
+
+  select: ({ field, value, onChange }) => {
+    const { control } = useFormContext()
+    return (
+      <Controller
+        control={control}
+        name={field.id}
+        defaultValue={value ?? ''}
+        render={({ field: f }) => (
+          <div>
+            <label htmlFor={field.id}>{field.label}</label>
+            <select
+              {...f}
+              id={field.id}
+              value={value ?? f.value}
+              onChange={(e) => {
+                f.onChange(e)
+                onChange(e.target.value)
+              }}
+            >
+              {field.options?.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      />
+    )
+  },
+}
+```
+
+## Wire up
+
+```typescript
+// src/App.tsx
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { openaiProvider } from '@intentform/provider-openai'
+import { FormProvider, useForm } from 'react-hook-form'
+import { rhfComponents } from './field-components'
+import { accidentReportModel } from './models/accident-report'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [accidentReportModel],
+})
+
+export default function App() {
+  const form = useForm()
+
+  return (
+    <FormProvider {...form}>
+      <IntentForm
+        engine={engine}
+        fieldComponents={rhfComponents}
+      />
+    </FormProvider>
+  )
+}
+```

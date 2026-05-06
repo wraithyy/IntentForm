@@ -1,0 +1,83 @@
+---
+title: Spring Boot proxy
+description: Keep your AI provider API key server-side using a Spring Boot REST endpoint.
+---
+
+Use a Spring Boot controller as the AI proxy. The browser calls your `/api/intent` endpoint; Spring calls the provider and returns the serialized resolution.
+
+## Install (client)
+
+```bash
+pnpm add @intentform/core @intentform/react @intentform/shared zod
+```
+
+## Spring controller
+
+```java
+// src/main/java/com/example/IntentController.java
+@RestController
+@RequestMapping("/api")
+public class IntentController {
+
+    @Value("${openai.api-key}")
+    private String apiKey;
+
+    @PostMapping("/intent")
+    public ResponseEntity<Map<String, Object>> resolve(@RequestBody Map<String, String> body) {
+        String intent = body.get("intent");
+
+        // Call OpenAI directly or via Spring AI
+        // Return the same shape IntentForm expects:
+        // { model, values, fieldRelevance, confidence }
+        Map<String, Object> result = callOpenAi(intent, apiKey);
+        return ResponseEntity.ok(result);
+    }
+}
+```
+
+:::tip[Spring AI]
+If you use [Spring AI](https://spring.io/projects/spring-ai) you can inject `ChatClient` and use structured output instead of calling the OpenAI REST API manually.
+:::
+
+## Custom provider (client)
+
+```typescript
+// src/providers/spring-provider.ts
+import { serializeResolution, deserializeResolution } from '@intentform/shared'
+import type { AiProvider } from '@intentform/shared'
+
+export function springProvider(baseUrl: string): AiProvider {
+  return {
+    async generateStructured(input) {
+      const res = await fetch(`${baseUrl}/api/intent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intent: input.intent, models: input.models }),
+      })
+      if (!res.ok) throw new Error(`Spring proxy error: ${res.status}`)
+      return deserializeResolution(await res.json())
+    },
+  }
+}
+```
+
+## Wire up
+
+```typescript
+// src/App.tsx
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { springProvider } from './providers/spring-provider'
+import { accidentReportModel } from './models/accident-report'
+
+const engine = createIntentForm({
+  provider: springProvider('http://localhost:8080'),
+  models: [accidentReportModel],
+})
+
+export default function App() {
+  return <IntentForm engine={engine} />
+}
+```
+
+See [Keep API Key Server-Side](/IntentForm/recipes/server-side-key/) for the full security rationale.

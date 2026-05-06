@@ -1,0 +1,103 @@
+---
+title: Native HTML inputs
+description: Render IntentForm fields with plain HTML input, select, and textarea elements — no UI library required.
+---
+
+Pass a `fieldComponents` map to `<IntentForm />` to render every field with native HTML elements. Good for projects that avoid UI library dependencies or need maximum control over markup.
+
+## Install
+
+```bash
+pnpm add @intentform/core @intentform/react zod
+```
+
+## Field components map
+
+```typescript
+// src/field-components.tsx
+import type { FieldComponentsMap } from '@intentform/react'
+
+export const nativeComponents: FieldComponentsMap = {
+  text: ({ field, value, onChange }) => (
+    <div>
+      <label htmlFor={field.id}>{field.label}</label>
+      <input
+        id={field.id}
+        type="text"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  ),
+
+  number: ({ field, value, onChange }) => (
+    <div>
+      <label htmlFor={field.id}>{field.label}</label>
+      <input
+        id={field.id}
+        type="number"
+        value={value ?? ''}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </div>
+  ),
+
+  select: ({ field, value, onChange }) => (
+    <div>
+      <label htmlFor={field.id}>{field.label}</label>
+      <select
+        id={field.id}
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">— select —</option>
+        {field.options?.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  ),
+
+  textarea: ({ field, value, onChange }) => (
+    <div>
+      <label htmlFor={field.id}>{field.label}</label>
+      <textarea
+        id={field.id}
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  ),
+}
+```
+
+## Wire up
+
+```typescript
+// src/App.tsx
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { openaiProvider } from '@intentform/provider-openai'
+import { nativeComponents } from './field-components'
+import { accidentReportModel } from './models/accident-report'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [accidentReportModel],
+})
+
+export default function App() {
+  return (
+    <IntentForm
+      engine={engine}
+      fieldComponents={nativeComponents}
+    />
+  )
+}
+```
+
+:::tip
+If you don't pass `fieldComponents`, IntentForm renders a minimal built-in fallback. The native HTML map above is useful when you want full styling control without a dependency.
+:::

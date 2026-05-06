@@ -1,0 +1,113 @@
+---
+title: shadcn/ui
+description: Render IntentForm fields using shadcn/ui Input, Select, and Textarea components.
+---
+
+Map IntentForm's field types to [shadcn/ui](https://ui.shadcn.com) components. Install the components you need, then pass a `fieldComponents` map.
+
+## Install
+
+```bash
+pnpm add @intentform/core @intentform/react zod
+npx shadcn@latest add input select textarea label
+```
+
+## Field components map
+
+```typescript
+// src/field-components.tsx
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import type { FieldComponentsMap } from '@intentform/react'
+
+export const shadcnComponents: FieldComponentsMap = {
+  text: ({ field, value, onChange }) => (
+    <div className="space-y-1">
+      <Label htmlFor={field.id}>{field.label}</Label>
+      <Input
+        id={field.id}
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  ),
+
+  number: ({ field, value, onChange }) => (
+    <div className="space-y-1">
+      <Label htmlFor={field.id}>{field.label}</Label>
+      <Input
+        id={field.id}
+        type="number"
+        value={value ?? ''}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </div>
+  ),
+
+  select: ({ field, value, onChange }) => (
+    <div className="space-y-1">
+      <Label>{field.label}</Label>
+      <Select value={value ?? ''} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select…" />
+        </SelectTrigger>
+        <SelectContent>
+          {field.options?.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  ),
+
+  textarea: ({ field, value, onChange }) => (
+    <div className="space-y-1">
+      <Label htmlFor={field.id}>{field.label}</Label>
+      <Textarea
+        id={field.id}
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  ),
+}
+```
+
+## Wire up
+
+```typescript
+// src/App.tsx
+import { createIntentForm } from '@intentform/core'
+import { IntentForm } from '@intentform/react'
+import { openaiProvider } from '@intentform/provider-openai'
+import { shadcnComponents } from './field-components'
+import { accidentReportModel } from './models/accident-report'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [accidentReportModel],
+})
+
+export default function App() {
+  return (
+    <IntentForm
+      engine={engine}
+      fieldComponents={shadcnComponents}
+    />
+  )
+}
+```
+
+:::tip
+Wrap the `<IntentForm />` in a shadcn `<Card>` or `<Form>` shell to match the rest of your app's form styling conventions.
+:::

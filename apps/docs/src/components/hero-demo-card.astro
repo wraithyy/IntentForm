@@ -1,0 +1,393 @@
+---
+// Demo: natural language intent → form switching (Accident Report / Table Reservation)
+// Pure CSS, no JS. 14s cycle: text types first, then form reveals.
+//
+// Timeline:
+//   0–4s   intent 1 types (0–29%)
+//   4–6.5s form 1 reveals staggered (29–46%)
+//   6.5–7s fade out (46–50%)
+//   7–11s  intent 2 types (50–79%)
+//   11–13.5s form 2 reveals staggered (79–96%)
+//   13.5–14s fade out (96–100%)
+---
+
+<div class="demo-card" aria-hidden="true">
+
+  <!-- ── Intent textarea ── -->
+  <div class="demo-top">
+    <div class="demo-input-group">
+      <label class="demo-input-label">Describe your situation</label>
+      <div class="demo-textarea">
+        <span class="demo-t1">I slipped on a wet floor at the warehouse yesterday around 3pm. Minor bruise on my arm.</span>
+        <span class="demo-t2">Book a table for 4 people this Friday at 7pm, preferably near the window.</span>
+        <span class="demo-cursor">|</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Selected form badge ── -->
+  <div class="demo-model-row">
+    <span class="demo-model-label">Selected form</span>
+    <div class="demo-model-badges">
+      <span class="demo-badge badge-1">Accident Report</span>
+      <span class="demo-badge badge-2">Table Reservation</span>
+    </div>
+  </div>
+
+  <!-- ── Form fields ── -->
+  <div class="demo-form-area">
+
+    <!-- Accident Report -->
+    <div class="demo-grid">
+      <div class="demo-input-group f1-a">
+        <label class="demo-input-label">Location</label>
+        <div class="demo-input-field">warehouse</div>
+      </div>
+      <div class="demo-input-group f1-b">
+        <label class="demo-input-label">Date &amp; time</label>
+        <div class="demo-input-field">yesterday, 3:00 PM</div>
+      </div>
+      <div class="demo-input-group f1-c">
+        <label class="demo-input-label">Injury type</label>
+        <div class="demo-input-field">bruise — minor</div>
+      </div>
+      <div class="demo-input-group f1-d">
+        <label class="demo-input-label">Body part</label>
+        <div class="demo-input-field">arm</div>
+      </div>
+    </div>
+
+    <!-- Table Reservation -->
+    <div class="demo-grid">
+      <div class="demo-input-group f2-a">
+        <label class="demo-input-label">Party size</label>
+        <div class="demo-input-field">4 people</div>
+      </div>
+      <div class="demo-input-group f2-b">
+        <label class="demo-input-label">Date</label>
+        <div class="demo-input-field">this Friday</div>
+      </div>
+      <div class="demo-input-group f2-c">
+        <label class="demo-input-label">Time</label>
+        <div class="demo-input-field">7:00 PM</div>
+      </div>
+      <div class="demo-input-group f2-d">
+        <label class="demo-input-label">Seating</label>
+        <div class="demo-input-field">window preferred</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+  /* ── Card shell ── */
+  .demo-card {
+    background: color-mix(in srgb, var(--sl-color-bg-sidebar) 85%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sl-color-white) 12%, transparent);
+    border-radius: 14px;
+    backdrop-filter: blur(20px);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--sl-color-white) 8%, transparent) inset,
+      0 24px 64px color-mix(in srgb, #000 32%, transparent);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .demo-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 80% 40% at 50% 0%,
+      color-mix(in srgb, var(--sl-color-accent) 8%, transparent),
+      transparent 65%
+    );
+    pointer-events: none;
+  }
+
+  /* ── Textarea ── */
+  .demo-top { position: relative; }
+
+  .demo-textarea {
+    background: color-mix(in srgb, var(--sl-color-bg) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sl-color-white) 12%, transparent);
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    min-height: 3.6rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--sl-color-gray-2);
+    position: relative;
+    overflow: hidden;
+    animation: textareaFocus 14s linear infinite;
+  }
+
+  /* Focus ring: active while text is typing */
+  @keyframes textareaFocus {
+    0%,  2%  { border-color: var(--sl-color-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--sl-color-accent) 20%, transparent); }
+    29%      { border-color: var(--sl-color-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--sl-color-accent) 20%, transparent); }
+    34%      { border-color: color-mix(in srgb, var(--sl-color-white) 12%, transparent); box-shadow: none; }
+    50%, 52% { border-color: var(--sl-color-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--sl-color-accent) 20%, transparent); }
+    79%      { border-color: var(--sl-color-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--sl-color-accent) 20%, transparent); }
+    84%      { border-color: color-mix(in srgb, var(--sl-color-white) 12%, transparent); box-shadow: none; }
+    100%     { border-color: color-mix(in srgb, var(--sl-color-white) 12%, transparent); box-shadow: none; }
+  }
+
+  /* Two texts stacked; clip-path creates typewriter reveal */
+  .demo-t1,
+  .demo-t2 {
+    position: absolute;
+    inset: 0.6rem 0.75rem;
+    display: block;
+  }
+
+  /* t1: types 0→29%, holds 29→46%, fades+resets at 50% */
+  .demo-t1 { animation: t1anim 14s linear infinite; }
+  @keyframes t1anim {
+    0%    { opacity: 1; clip-path: inset(0 100% 0 0); }
+    2%    { opacity: 1; clip-path: inset(0 100% 0 0); }
+    29%   { opacity: 1; clip-path: inset(0 0%   0 0); }
+    46%   { opacity: 1; clip-path: inset(0 0%   0 0); }
+    50%   { opacity: 0; clip-path: inset(0 0%   0 0); }
+    51%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+    100%  { opacity: 0; clip-path: inset(0 100% 0 0); }
+  }
+
+  /* t2: types 50→79%, holds 79→96%, fades at 100% */
+  .demo-t2 { animation: t2anim 14s linear infinite; opacity: 0; }
+  @keyframes t2anim {
+    0%    { opacity: 0; clip-path: inset(0 100% 0 0); }
+    50%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+    52%   { opacity: 1; clip-path: inset(0 100% 0 0); }
+    79%   { opacity: 1; clip-path: inset(0 0%   0 0); }
+    96%   { opacity: 1; clip-path: inset(0 0%   0 0); }
+    100%  { opacity: 0; clip-path: inset(0 0%   0 0); }
+  }
+
+  /* Blinking cursor — visible only while typing */
+  .demo-cursor {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--sl-color-accent);
+    position: relative;
+    z-index: 1;
+    animation: cursorBlink 0.85s step-end infinite, cursorShow 14s linear infinite;
+  }
+  @keyframes cursorBlink { 50% { opacity: 0; } }
+  @keyframes cursorShow {
+    0%,  2%  { opacity: 1; }
+    30%      { opacity: 0; }
+    50%, 52% { opacity: 1; }
+    80%      { opacity: 0; }
+    100%     { opacity: 0; }
+  }
+
+  /* ── Model row ── */
+  .demo-model-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0;
+    border-top: 1px solid color-mix(in srgb, var(--sl-color-white) 12%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--sl-color-white) 12%, transparent);
+  }
+
+  .demo-model-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.67rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+  }
+
+  .demo-model-badges { position: relative; height: 1.4rem; flex: 1; }
+
+  .demo-badge {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.6rem;
+    border-radius: 100px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    white-space: nowrap;
+  }
+
+  /* badge-1: appears with form 1 (at 29%), fades at 50% */
+  .badge-1 {
+    background: color-mix(in srgb, var(--sl-color-accent) 15%, transparent);
+    color: var(--sl-color-accent);
+    border: 1px solid color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+    animation: badge1show 14s linear infinite;
+    opacity: 0;
+  }
+  @keyframes badge1show {
+    0%,  29% { opacity: 0; transform: translateY(4px); }
+    35%      { opacity: 1; transform: translateY(0); }
+    46%      { opacity: 1; transform: translateY(0); }
+    50%      { opacity: 0; transform: translateY(-4px); }
+    100%     { opacity: 0; transform: translateY(4px); }
+  }
+
+  /* badge-2: appears with form 2 (at 79%), fades at 100% */
+  .badge-2 {
+    background: color-mix(in srgb, #a6e3a1 15%, transparent);
+    color: #a6e3a1;
+    border: 1px solid color-mix(in srgb, #a6e3a1 30%, transparent);
+    animation: badge2show 14s linear infinite;
+    opacity: 0;
+  }
+  @keyframes badge2show {
+    0%,  79% { opacity: 0; transform: translateY(4px); }
+    85%      { opacity: 1; transform: translateY(0); }
+    96%      { opacity: 1; transform: translateY(0); }
+    100%     { opacity: 0; transform: translateY(-4px); }
+  }
+
+  /* ── Labels ── */
+  .demo-input-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--sl-color-gray-3);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  /* ── Prefilled field ── */
+  .demo-input-field {
+    background: color-mix(in srgb, var(--sl-color-accent) 6%, color-mix(in srgb, var(--sl-color-bg) 60%, transparent));
+    border: 1px solid color-mix(in srgb, var(--sl-color-accent) 25%, transparent);
+    border-radius: 7px;
+    padding: 0.45rem 0.65rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--sl-color-gray-1);
+  }
+
+  /* ── Form grid: both grids overlap in the same space ── */
+  .demo-form-area {
+    position: relative;
+    min-height: 130px;
+  }
+
+  .demo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.6rem;
+    position: absolute;
+    inset: 0;
+  }
+
+  /* ── Per-field keyframes: timing baked in for seamless looping ──
+     Form 1 fields appear after text 1 finishes (29%), fade at 50%.
+     Form 2 fields appear after text 2 finishes (79%), fade at 100%.
+     Each field is 1% staggered from the previous.
+  */
+  .f1-a { animation: f1a 14s linear infinite; opacity: 0; }
+  .f1-b { animation: f1b 14s linear infinite; opacity: 0; }
+  .f1-c { animation: f1c 14s linear infinite; opacity: 0; }
+  .f1-d { animation: f1d 14s linear infinite; opacity: 0; }
+  .f2-a { animation: f2a 14s linear infinite; opacity: 0; }
+  .f2-b { animation: f2b 14s linear infinite; opacity: 0; }
+  .f2-c { animation: f2c 14s linear infinite; opacity: 0; }
+  .f2-d { animation: f2d 14s linear infinite; opacity: 0; }
+
+  @keyframes f1a {
+    0%, 28% { opacity: 0; transform: translateY(6px); }
+    34%     { opacity: 1; transform: translateY(0);   }
+    46%     { opacity: 1; }
+    50%     { opacity: 0; }
+    51%, 100%{ opacity: 0; transform: translateY(6px); }
+  }
+  @keyframes f1b {
+    0%, 29% { opacity: 0; transform: translateY(6px); }
+    35%     { opacity: 1; transform: translateY(0);   }
+    46%     { opacity: 1; }
+    50%     { opacity: 0; }
+    51%, 100%{ opacity: 0; transform: translateY(6px); }
+  }
+  @keyframes f1c {
+    0%, 30% { opacity: 0; transform: translateY(6px); }
+    36%     { opacity: 1; transform: translateY(0);   }
+    46%     { opacity: 1; }
+    50%     { opacity: 0; }
+    51%, 100%{ opacity: 0; transform: translateY(6px); }
+  }
+  @keyframes f1d {
+    0%, 31% { opacity: 0; transform: translateY(6px); }
+    37%     { opacity: 1; transform: translateY(0);   }
+    46%     { opacity: 1; }
+    50%     { opacity: 0; }
+    51%, 100%{ opacity: 0; transform: translateY(6px); }
+  }
+
+  @keyframes f2a {
+    0%, 78% { opacity: 0; transform: translateY(6px); }
+    84%     { opacity: 1; transform: translateY(0);   }
+    96%     { opacity: 1; }
+    100%    { opacity: 0; }
+  }
+  @keyframes f2b {
+    0%, 79% { opacity: 0; transform: translateY(6px); }
+    85%     { opacity: 1; transform: translateY(0);   }
+    96%     { opacity: 1; }
+    100%    { opacity: 0; }
+  }
+  @keyframes f2c {
+    0%, 80% { opacity: 0; transform: translateY(6px); }
+    86%     { opacity: 1; transform: translateY(0);   }
+    96%     { opacity: 1; }
+    100%    { opacity: 0; }
+  }
+  @keyframes f2d {
+    0%, 81% { opacity: 0; transform: translateY(6px); }
+    87%     { opacity: 1; transform: translateY(0);   }
+    96%     { opacity: 1; }
+    100%    { opacity: 0; }
+  }
+
+  /* ── Hover pause ── */
+  .demo-card:hover * { animation-play-state: paused; }
+
+  /* ── Light mode ── */
+  [data-theme="light"] .demo-card {
+    border-color: color-mix(in srgb, var(--sl-color-black) 10%, transparent);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.8) inset,
+      0 4px 20px rgba(0,0,0,0.07),
+      0 16px 48px rgba(0,0,0,0.06);
+  }
+  [data-theme="light"] .demo-model-row {
+    border-color: color-mix(in srgb, var(--sl-color-black) 10%, transparent);
+  }
+  [data-theme="light"] .demo-input-field {
+    background: color-mix(in srgb, var(--sl-color-accent) 5%, white);
+    color: var(--sl-color-gray-1);
+  }
+
+  /* ── Reduced motion: show first form statically ── */
+  @media (prefers-reduced-motion: reduce) {
+    .demo-t1     { animation: none; opacity: 1; clip-path: none; position: static; }
+    .demo-t2     { display: none; }
+    .demo-cursor { display: none; }
+    .demo-textarea { animation: none; }
+    .badge-1     { animation: none; opacity: 1; }
+    .badge-2     { display: none; }
+    .f1-a, .f1-b, .f1-c, .f1-d { animation: none; opacity: 1; transform: none; }
+    .f2-a, .f2-b, .f2-c, .f2-d { display: none; }
+    /* first grid becomes static so form-area collapses to content height */
+    .demo-grid:first-child { position: static; }
+    .demo-grid:last-child  { display: none; }
+    .demo-form-area { min-height: auto; }
+  }
+</style>

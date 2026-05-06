@@ -51,10 +51,22 @@ article.card:hover {
   background: transparent !important;
 }
 
-/* Splash page: remove default hero slot bg so our Hero.astro shows */
+/* Splash page: remove default hero slot padding/bg so hero.astro shows edge-to-edge */
 .hero {
   padding: 0 !important;
   background: transparent !important;
+}
+
+/* Splash page body content: give breathing room below hero */
+[data-page-type="splash"] .sl-markdown-content {
+  padding-top: 2.5rem;
+}
+
+/* Hero grid responsive utility */
+@media (max-width: 960px) {
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Section separators in splash content */
