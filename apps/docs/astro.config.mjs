@@ -1,3 +1,4 @@
+import catppuccin from "@catppuccin/starlight";
 import react from "@astrojs/react";
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
@@ -39,6 +40,7 @@ export default defineConfig({
         typeDocSidebarGroup,
       ],
       plugins: [
+        catppuccin({ dark: { flavor: "mocha", accent: "mauve" }, light: { flavor: "latte", accent: "mauve" } }),
         starlightTypeDoc({
           entryPoints: [
             "../../packages/core/src/index.ts",
