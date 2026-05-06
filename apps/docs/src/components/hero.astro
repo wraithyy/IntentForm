@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+import logo from "../assets/logo.png";
 const { entry } = Astro.props;
 const hero = entry?.data?.hero;
 if (!hero) {
@@ -55,6 +57,13 @@ if (!hero) {
 
   <!-- Content -->
   <div class="hero-content">
+    <div class="hero-brand">
+      <Image src={logo} alt="IntentForm logo" width={56} height={56} />
+      <span class="hero-wordmark">IntentForm</span>
+    </div>
+
+    <p class="hero-pitch">Open-source React library that turns natural-language intent into validated, type-safe forms.</p>
+
     <span class="hero-eyebrow">Open source · React · AI-powered</span>
 
     {hero?.title ? (
@@ -204,6 +213,47 @@ if (!hero) {
   max-width: 720px;
 }
 
+.hero-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.hero-brand img {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  animation: logoFloat 5s ease-in-out infinite alternate,
+             logoGlow 3.5s ease-in-out infinite alternate;
+}
+@keyframes logoFloat {
+  from { transform: translateY(0) rotate(0deg); }
+  to   { transform: translateY(-4px) rotate(-1.5deg); }
+}
+@keyframes logoGlow {
+  from { box-shadow: 0 0 18px color-mix(in srgb, var(--sl-color-accent) 25%, transparent); }
+  to   { box-shadow: 0 0 32px color-mix(in srgb, var(--sl-color-accent) 55%, transparent),
+                     0 0 48px color-mix(in srgb, #f38ba8 25%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-brand img { animation: none; }
+}
+.hero-wordmark {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: clamp(2rem, 5vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sl-color-white);
+}
+.hero-pitch {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 2.2vw, 1.15rem);
+  color: var(--sl-color-gray-2);
+  max-width: 580px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.55;
+}
+
 .hero-eyebrow {
   display: inline-block;
   font-family: 'Outfit', sans-serif;
@@ -308,4 +358,6 @@ if (!hero) {
   -webkit-text-fill-color: transparent;
 }
 [data-theme="light"] .hero-btn-primary { color: #fff; }
+[data-theme="light"] .hero-wordmark { color: var(--sl-color-black); }
+[data-theme="light"] .hero-brand img { box-shadow: 0 0 16px color-mix(in srgb, #8839ef 30%, transparent); }
 </style>
