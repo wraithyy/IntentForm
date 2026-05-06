@@ -1,0 +1,56 @@
+---
+title: Package Overview
+description: All 14 IntentForm packages — what each exports and when to install it.
+---
+
+IntentForm is split into small, focused packages. Install only what you need.
+
+## Engine
+
+| Package | Exports | Install when |
+|---------|---------|--------------|
+| `@intentform/core` | `createIntentForm`, engine runtime, model registry, rule evaluator | Always — the core engine |
+| `@intentform/shared` | Shared TypeScript types (`ModelDefinition`, `FieldDefinition`, `Rule`, `AiProvider`, etc.) | When defining models in a separate file or package |
+
+## React
+
+| Package | Exports | Install when |
+|---------|---------|--------------|
+| `@intentform/react` | `<IntentForm />`, `useIntentForm`, `useIntentFormEngine` | Any React app that renders the intent input + form |
+
+## Form adapters
+
+| Package | Exports | Peer dep | Install when |
+|---------|---------|----------|--------------|
+| `@intentform/adapter-tanstack-form` | `tanstackAdapter()` | `@tanstack/react-form` | Greenfield — recommended for new projects |
+| `@intentform/adapter-react-hook-form` | `rhfAdapter()` | `react-hook-form` | Migrating an existing RHF codebase |
+
+Both adapters are optional. Without one, IntentForm uses its built-in uncontrolled renderer.
+
+## AI providers
+
+| Package | Exports | Model default | Install when |
+|---------|---------|---------------|--------------|
+| `@intentform/provider-openai` | `openaiProvider()` | `gpt-4o-mini` | Using OpenAI (most common) |
+| `@intentform/provider-anthropic` | `anthropicProvider()` | `claude-sonnet-4-6` | Using Anthropic |
+| `@intentform/provider-google` | `googleProvider()` | `gemini-2.0-flash` | Using Google (cheapest fast tier) |
+| `@intentform/provider-ollama` | `ollamaProvider()` | `llama3.2` | Local/offline inference (dev/testing) |
+
+See [AI Providers](./providers/) for per-provider guidance.
+
+## Server-side
+
+| Package | Exports | Install when |
+|---------|---------|--------------|
+| `@intentform/server` | `createIntentFormHonoRoute`, `createIntentFormNextHandler`, `createIntentFormServerFn`, `createIntentFormRoute` | Your backend is Node.js (Hono, Next.js, TanStack Start, or generic Web Fetch) |
+| `@intentform/server-http` | Standalone HTTP server (CLI + Docker image) | Your backend is non-Node (Spring, .NET, Python, etc.) |
+| `@intentform/client` | `createClientIntentForm()` | Browser client that talks to an `@intentform/server` or `@intentform/server-http` endpoint |
+
+See [Server-Side Architecture](./server-side/) for when to use each pattern.
+
+## Tooling
+
+| Package | Exports | Install when |
+|---------|---------|--------------|
+| `@intentform/debug-ui` | `<IntentFormDebugPanel />` | Development — inspect confidence, model selection, field relevance |
+| `@intentform/test` | Test helpers and vitest matchers | Writing unit/integration tests for your models and rules |

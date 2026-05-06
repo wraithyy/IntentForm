@@ -1,65 +1,74 @@
 ---
 title: IntentForm
-description: Transform natural language intent into validated, pre-filled forms using AI providers.
+description: Transform natural language intent into dynamic, validated forms.
+template: splash
+hero:
+  tagline: "Transform natural language intent into dynamic, validated forms — AI picks the form, AI pre-fills the fields, your backend sees the same JSON as always."
+  actions:
+    - text: Quick Start
+      link: ./quick-start/
+      icon: right-arrow
+      variant: primary
+    - text: Playground
+      link: ./playground/
+      icon: external
 ---
 
-```typescript
-const engine = createIntentForm({
-  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY }),
-  models: [accidentReportModel],
-})
+## The problem with form-heavy apps
 
-<IntentForm engine={engine} />
-// User types: "fell down stairs at work, bruised knee"
-// → form pre-fills: date=today, location=work, injuryType=minor
+Insurance portals, HR systems, government services, support desks — all share the same UX friction: the user has to navigate a menu of form types, pick the correct one, then fill 15–20 fields from scratch. Most users pick the wrong form. Most abandon halfway through.
+
+The bottleneck is not the form itself. It's **model selection and data entry** — tasks that are trivially easy for an AI that has read the user's intent.
+
+## Why not replace forms with chat?
+
+Conversational AI interfaces are great for exploration. They are poor for structured workflows. A chat transcript cannot be directly validated, routed to a backend endpoint, or stored in a database without an additional (fragile) parsing step.
+
+Forms map to backend contracts. A `POST /api/claims` endpoint expects `{ policyNumber, claimType, incidentDate, lossAmount }` — not a paragraph.
+
+## The IntentForm approach
+
+Define one `ModelDefinition` per backend entity. IntentForm's engine takes a single sentence of user intent, uses an AI provider to:
+
+1. Pick the right model from your list.
+2. Extract structured values that map to your schema.
+
+The form pre-fills. The user reviews and submits. Your backend receives the same JSON it has always expected — no schema changes, no new storage format.
+
 ```
-
-## What it does
-
-User types a sentence. IntentForm sends it to an AI provider, which returns structured JSON. The engine selects the best matching form model, pre-fills field values, and applies conditional logic — all before the user touches a single input.
-
-**Core flow:**
-
-```
-intent (string) → AI provider → structured JSON → model selection
-  → field pre-fill → rule evaluation → rendered form
+"I slipped on ice in the parking lot yesterday, twisted my ankle"
+          │
+          ▼ engine.parse(intent)
+          │
+          ▼ AI selects model + extracts values
+{
+  model: "accidentReport",
+  values: {
+    incidentDate: "2026-05-04",
+    description: "Slipped on ice in parking lot, twisted ankle",
+    injuryType: "minor"
+  },
+  confidence: 0.91
+}
+          │
+          ▼ form pre-fills → user reviews → submit
 ```
 
 ## Install
 
 ```bash
-pnpm add @intentform/core @intentform/react @intentform/provider-openai
+pnpm add @intentform/core @intentform/react @intentform/provider-openai zod
 ```
-
-## Minimal example
 
 ```typescript
 import { createIntentForm } from '@intentform/core'
 import { IntentForm } from '@intentform/react'
 import { openaiProvider } from '@intentform/provider-openai'
-import { z } from 'zod'
-
-const contactModel = {
-  id: 'contact',
-  label: 'Contact Form',
-  description: 'General contact or support request',
-  useCases: ['contact', 'support', 'inquiry'],
-  schema: z.object({
-    name: z.string(),
-    email: z.string().email(),
-    message: z.string(),
-  }),
-  fields: [
-    { id: 'name', type: 'text', label: 'Name', required: true },
-    { id: 'email', type: 'text', label: 'Email', required: true },
-    { id: 'message', type: 'textarea', label: 'Message' },
-  ],
-  rules: [],
-}
+import { accidentReportModel } from './models/accident-report'
 
 const engine = createIntentForm({
-  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY }),
-  models: [contactModel],
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: [accidentReportModel],
 })
 
 export default function App() {
@@ -67,16 +76,10 @@ export default function App() {
 }
 ```
 
-## Key concepts
+## Explore
 
-| Concept | Description |
-|---------|-------------|
-| [Models](./concepts/models/) | Define form structure, Zod schema, and field list |
-| [Providers](./concepts/providers/) | OpenAI, Anthropic, Google, Ollama — or your own |
-| [Adapters](./concepts/adapters/) | TanStack Form or React Hook Form integration |
-| [Rules](./concepts/rules/) | Conditional logic: hide/show/require based on field values |
-| [Confidence Tiers](./concepts/confidence-tiers/) | Escalate to smarter models when confidence is low |
-
-:::tip[Try it live]
-Head to the [Playground](./playground/) to test IntentForm with your own API key — no setup required.
-:::
+- [Quick Start](./quick-start/) — working example in 5 minutes
+- [Playground](./playground/) — try it live in the browser
+- [How It Works](./concepts/intent-flow/) — full engine pipeline explained
+- [All Packages](./concepts/packages/) — overview of every package and when to use it
+- [Keep API Key Server-Side](./recipes/server-side-key/) — production security pattern

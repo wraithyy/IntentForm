@@ -1,0 +1,66 @@
+---
+title: Hono Integration
+description: Keep your OpenAI key server-side using Hono and @intentform/server.
+---
+
+Mount IntentForm as a Hono route so the AI provider runs on the server and API keys never reach the browser.
+
+## Install
+
+```bash
+pnpm add @intentform/server @intentform/client hono
+```
+
+## Server
+
+```typescript
+// src/server.ts
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { createIntentFormHonoRoute } from '@intentform/server'
+import { createIntentForm } from '@intentform/core'
+import { openaiProvider } from '@intentform/provider-openai'
+import { myModels } from './models'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: myModels,
+})
+
+const app = new Hono()
+app.use('/api/intent', cors())
+app.post('/api/intent', createIntentFormHonoRoute(engine))
+
+export default app
+```
+
+## Browser client
+
+```typescript
+// src/engine.ts (client-side)
+import { createClientIntentForm } from '@intentform/client'
+import { myModels } from './models'
+
+export const engine = createClientIntentForm({
+  endpoint: '/api/intent',
+  models: myModels,
+})
+```
+
+```typescript
+// src/App.tsx
+import { IntentForm } from '@intentform/react'
+import { engine } from './engine'
+
+export default function App() {
+  return <IntentForm engine={engine} onSubmit={(v) => console.log(v)} />
+}
+```
+
+The browser sends `{ prompt: "..." }` to `/api/intent`. The server resolves it and returns the pre-fill JSON. The API key never leaves the server.
+
+:::note[Model list on client]
+`createClientIntentForm` needs the model list client-side to render field components. No schema or AI logic is executed in the browser — only field definitions are used for rendering.
+:::
+
+See [Server-Side Architecture](../concepts/server-side/) for a full comparison of patterns.

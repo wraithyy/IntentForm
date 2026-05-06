@@ -1,0 +1,52 @@
+---
+title: TanStack Start Integration
+description: Keep your OpenAI key server-side using TanStack Start server functions.
+---
+
+Use `createIntentFormServerFn` to run the engine inside a TanStack Start server function. The function executes on the server; the client calls it like a normal async function.
+
+## Install
+
+```bash
+pnpm add @intentform/server @tanstack/react-start
+```
+
+## Server function
+
+```typescript
+// app/server/intent.ts
+import { createIntentFormServerFn } from '@intentform/server'
+import { createIntentForm } from '@intentform/core'
+import { openaiProvider } from '@intentform/provider-openai'
+import { myModels } from '../models'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: myModels,
+})
+
+export const resolveIntent = createIntentFormServerFn(engine)
+```
+
+## Client component
+
+```typescript
+// app/routes/index.tsx
+import { IntentForm } from '@intentform/react'
+import { createClientIntentForm } from '@intentform/client'
+import { resolveIntent } from '../server/intent'
+import { myModels } from '../models'
+
+const engine = createClientIntentForm({
+  serverFn: resolveIntent,
+  models: myModels,
+})
+
+export default function IndexPage() {
+  return <IntentForm engine={engine} onSubmit={(v) => console.log(v)} />
+}
+```
+
+The server function runs in the server bundle. No `fetch` configuration or CORS needed — TanStack Start handles RPC serialization.
+
+See [Server-Side Architecture](../concepts/server-side/) for a full comparison of patterns.

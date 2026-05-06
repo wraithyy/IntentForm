@@ -1,0 +1,59 @@
+---
+title: Next.js Integration
+description: Keep your OpenAI key server-side using Next.js App Router and @intentform/server.
+---
+
+Use the Next.js App Router route handler to run IntentForm's engine on the server.
+
+## Install
+
+```bash
+pnpm add @intentform/server @intentform/client
+```
+
+## Server route handler
+
+```typescript
+// app/api/intent/route.ts
+import { createIntentFormNextHandler } from '@intentform/server'
+import { createIntentForm } from '@intentform/core'
+import { openaiProvider } from '@intentform/provider-openai'
+import { myModels } from '@/models'
+
+const engine = createIntentForm({
+  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+  models: myModels,
+})
+
+export const { POST } = createIntentFormNextHandler(engine)
+```
+
+## Browser client
+
+```typescript
+// lib/engine.ts
+import { createClientIntentForm } from '@intentform/client'
+import { myModels } from '@/models'
+
+export const engine = createClientIntentForm({
+  endpoint: '/api/intent',
+  models: myModels,
+})
+```
+
+```typescript
+// app/page.tsx (Client Component)
+'use client'
+import { IntentForm } from '@intentform/react'
+import { engine } from '@/lib/engine'
+
+export default function Page() {
+  return <IntentForm engine={engine} onSubmit={(v) => console.log(v)} />
+}
+```
+
+:::tip[Environment variables]
+In Next.js, server-only env vars (no `NEXT_PUBLIC_` prefix) are never sent to the browser. `OPENAI_API_KEY` without the prefix is safe by default.
+:::
+
+See [Server-Side Architecture](../concepts/server-side/) for a full comparison of patterns.

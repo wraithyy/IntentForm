@@ -1,0 +1,86 @@
+---
+title: HTTP Sidecar (Non-Node Backends)
+description: Run IntentForm as a standalone Docker container for Spring Boot, .NET, Python, or any non-Node backend.
+---
+
+If your backend is Spring Boot, .NET, Django, FastAPI, or any other non-Node runtime, run `@intentform/server-http` as a sidecar container. Your backend stays unchanged — it just calls the sidecar's HTTP API.
+
+## Docker Compose
+
+```yaml
+services:
+  app:
+    image: your-app:latest
+
+  intentform:
+    image: intentform/server-http:latest
+    ports:
+      - "3721:3721"
+    environment:
+      INTENTFORM_PROVIDER: openai
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      INTENTFORM_MODELS_PATH: /app/models.js
+      INTENTFORM_AUTH_TOKEN: ${INTENTFORM_AUTH_TOKEN}
+      INTENTFORM_CORS_ORIGIN: https://your-app.com
+    volumes:
+      - ./models.js:/app/models.js:ro
+```
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `INTENTFORM_PROVIDER` | Yes | `openai`, `anthropic`, `google`, or `ollama` |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GOOGLE_API_KEY` | Yes (per provider) | AI provider API key |
+| `INTENTFORM_MODELS_PATH` | Yes | Path to a `.js` file that exports `{ models }` |
+| `INTENTFORM_PORT` | No (default `3721`) | HTTP listen port |
+| `INTENTFORM_AUTH_TOKEN` | No | Bearer token required on every request |
+| `INTENTFORM_CORS_ORIGIN` | No | Allowed CORS origin (e.g. `https://your-app.com`) |
+
+## Endpoints
+
+```
+POST /api/intent   { prompt: string } → IntentResolution
+GET  /health       → { status: "ok" }
+```
+
+## Spring Boot example
+
+```java
+@Service
+public class IntentFormClient {
+    private final RestTemplate restTemplate;
+
+    public IntentResolution resolve(String prompt) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(System.getenv("INTENTFORM_AUTH_TOKEN"));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, String> body = Map.of("prompt", prompt);
+        HttpEntity<Map<String, String>> req = new HttpEntity<>(body, headers);
+
+        return restTemplate.postForObject(
+            "http://intentform:3721/api/intent",
+            req,
+            IntentResolution.class
+        );
+    }
+}
+```
+
+## Browser client
+
+```typescript
+import { createClientIntentForm } from '@intentform/client'
+import { myModels } from './models'
+
+export const engine = createClientIntentForm({
+  endpoint: 'https://your-app.com/api/intent',
+  models: myModels,
+  headers: {
+    Authorization: `Bearer ${import.meta.env.VITE_INTENTFORM_TOKEN}`,
+  },
+})
+```
+
+See [Server-Side Architecture](../concepts/server-side/) for a comparison of all production patterns.

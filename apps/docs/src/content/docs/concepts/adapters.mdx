@@ -91,3 +91,15 @@ const fieldComponents: FieldComponents = {
 :::note
 If no adapter is passed to `createIntentForm`, IntentForm uses its built-in uncontrolled renderer. Use an adapter when you need full form library integration (validation, submission, dirty state, etc.).
 :::
+
+## Choosing an adapter
+
+**No adapter** — the default. IntentForm renders an uncontrolled form using its built-in field components. Good for prototyping and simple use cases. No extra dependency.
+
+**TanStack Form** — recommended for new projects. Fully type-safe, schema-inferred field types, built-in async validation, small and framework-agnostic. Use if you are starting a project and have no prior form library investment.
+
+**React Hook Form** — recommended when migrating an existing codebase. The most widely used React form library. If your team already knows RHF or you have existing RHF forms to integrate with, this is the lower-friction choice.
+
+:::tip
+You can mix: use the built-in renderer for low-stakes forms and switch to an adapter only for the forms that need full submission/validation control.
+:::
