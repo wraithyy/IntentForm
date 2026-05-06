@@ -1,4 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
+import {
+  parseStructuredOutput,
+  StructuredOutputParseError,
+} from "@intentform/core";
 import type {
   AiProvider,
   AiProviderInput,
@@ -9,6 +13,7 @@ import type {
 
 export interface AnthropicProviderOptions {
   apiKey: string;
+  maxPromptLength?: number;
   model?: string;
   retries?: number;
   timeoutMs?: number;
@@ -44,16 +49,20 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+function sanitizePromptString(value: string): string {
+  return value.replace(/[\r\n\t]/g, " ").replace(/[\x00-\x1F\x7F]/g, "");
+}
+
 function buildFieldDescription(field: FieldDefinition): string {
   const parts: string[] = [
-    `  - id: ${field.id}`,
-    `    label: ${field.label}`,
+    `  - id: ${sanitizePromptString(field.id)}`,
+    `    label: ${sanitizePromptString(field.label)}`,
     `    type: ${field.type}`,
     `    required: ${field.required === true ? "true" : "false"}`,
   ];
 
   if (field.description) {
-    parts.push(`    description: ${field.description}`);
+    parts.push(`    description: ${sanitizePromptString(field.description)}`);
   }
 
   if (
@@ -61,7 +70,9 @@ function buildFieldDescription(field: FieldDefinition): string {
     field.options &&
     field.options.length > 0
   ) {
-    const optionValues = field.options.map((o) => o.value).join(", ");
+    const optionValues = field.options
+      .map((o) => sanitizePromptString(o.value))
+      .join(", ");
     parts.push(`    options: [${optionValues}]`);
   }
 
@@ -71,10 +82,10 @@ function buildFieldDescription(field: FieldDefinition): string {
 function buildModelDescription(model: ModelDefinition): string {
   const fieldLines = model.fields.map(buildFieldDescription).join("\n");
   return [
-    `Model id: ${model.id}`,
-    `  label: ${model.label}`,
-    `  description: ${model.description}`,
-    `  useCases: ${model.useCases.join(", ")}`,
+    `Model id: ${sanitizePromptString(model.id)}`,
+    `  label: ${sanitizePromptString(model.label)}`,
+    `  description: ${sanitizePromptString(model.description)}`,
+    `  useCases: ${model.useCases.map(sanitizePromptString).join(", ")}`,
     "  fields:",
     fieldLines,
   ].join("\n");
@@ -109,7 +120,9 @@ Return ONLY valid JSON (no markdown, no explanations) with exactly this shape:
     - numbers → numeric type, not strings
     - omit a field entirely if you cannot determine its value
 - "fieldRelevance": for every field in the chosen model, assign a relevance score between 0 and 1 indicating how relevant/applicable that field is given the user's input.
-- "confidence": a number between 0 and 1 representing your overall confidence in the model selection and extracted values.`;
+- "confidence": a number between 0 and 1 representing your overall confidence in the model selection and extracted values.
+
+CRITICAL: Respond with raw JSON only. No markdown code fences, no prose, no explanations. The first character of your response must be "{" and the last must be "}".`;
 }
 
 interface StructuredOutput {
@@ -124,11 +137,18 @@ export function anthropicProvider(
 ): AiProvider {
   const client = new Anthropic({ apiKey: options.apiKey });
   const model = options.model ?? DEFAULT_MODEL;
+  const maxPromptLength = options.maxPromptLength ?? 2000;
 
   return {
     async generateStructured(
       input: AiProviderInput
     ): Promise<AiProviderOutput> {
+      if (input.prompt.length > maxPromptLength) {
+        throw new Error(
+          `Anthropic provider: prompt exceeds maxPromptLength (${input.prompt.length} > ${maxPromptLength})`
+        );
+      }
+
       const systemPrompt = buildSystemPrompt(input.models);
 
       let response: Anthropic.Message;
@@ -161,12 +181,25 @@ export function anthropicProvider(
 
       const raw = firstBlock.text;
 
-      let parsed: StructuredOutput;
+      let rawParsed: unknown;
       try {
-        parsed = JSON.parse(raw) as StructuredOutput;
+        rawParsed = JSON.parse(raw);
       } catch {
         throw new Error("Anthropic provider returned invalid JSON");
       }
+
+      try {
+        parseStructuredOutput(rawParsed);
+      } catch (err) {
+        if (err instanceof StructuredOutputParseError) {
+          throw new Error(
+            `Anthropic provider returned malformed structured output: ${err.message}`
+          );
+        }
+        throw err;
+      }
+
+      const parsed = rawParsed as StructuredOutput;
 
       const baseOutput: AiProviderOutput = {
         confidence: parsed.confidence,

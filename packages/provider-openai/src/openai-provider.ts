@@ -1,3 +1,7 @@
+import {
+  parseStructuredOutput,
+  StructuredOutputParseError,
+} from "@intentform/core";
 import type {
   AiProvider,
   AiProviderInput,
@@ -10,6 +14,7 @@ import OpenAI from "openai";
 export interface OpenAiProviderOptions {
   apiKey: string;
   dangerouslyAllowBrowser?: boolean;
+  maxPromptLength?: number;
   model?: string;
   retries?: number;
   timeoutMs?: number;
@@ -45,16 +50,20 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+function sanitizePromptString(value: string): string {
+  return value.replace(/[\r\n\t]/g, " ").replace(/[\x00-\x1F\x7F]/g, "");
+}
+
 function buildFieldDescription(field: FieldDefinition): string {
   const parts: string[] = [
-    `  - id: ${field.id}`,
-    `    label: ${field.label}`,
+    `  - id: ${sanitizePromptString(field.id)}`,
+    `    label: ${sanitizePromptString(field.label)}`,
     `    type: ${field.type}`,
     `    required: ${field.required === true ? "true" : "false"}`,
   ];
 
   if (field.description) {
-    parts.push(`    description: ${field.description}`);
+    parts.push(`    description: ${sanitizePromptString(field.description)}`);
   }
 
   if (
@@ -62,7 +71,9 @@ function buildFieldDescription(field: FieldDefinition): string {
     field.options &&
     field.options.length > 0
   ) {
-    const optionValues = field.options.map((o) => o.value).join(", ");
+    const optionValues = field.options
+      .map((o) => sanitizePromptString(o.value))
+      .join(", ");
     parts.push(`    options: [${optionValues}]`);
   }
 
@@ -72,10 +83,10 @@ function buildFieldDescription(field: FieldDefinition): string {
 function buildModelDescription(model: ModelDefinition): string {
   const fieldLines = model.fields.map(buildFieldDescription).join("\n");
   return [
-    `Model id: ${model.id}`,
-    `  label: ${model.label}`,
-    `  description: ${model.description}`,
-    `  useCases: ${model.useCases.join(", ")}`,
+    `Model id: ${sanitizePromptString(model.id)}`,
+    `  label: ${sanitizePromptString(model.label)}`,
+    `  description: ${sanitizePromptString(model.description)}`,
+    `  useCases: ${model.useCases.map(sanitizePromptString).join(", ")}`,
     "  fields:",
     fieldLines,
   ].join("\n");
@@ -127,10 +138,18 @@ export function openaiProvider(options: OpenAiProviderOptions): AiProvider {
   });
   const model = options.model ?? DEFAULT_MODEL;
 
+  const maxPromptLength = options.maxPromptLength ?? 2000;
+
   return {
     async generateStructured(
       input: AiProviderInput
     ): Promise<AiProviderOutput> {
+      if (input.prompt.length > maxPromptLength) {
+        throw new Error(
+          `OpenAI provider: prompt exceeds maxPromptLength (${input.prompt.length} > ${maxPromptLength})`
+        );
+      }
+
       const systemPrompt = buildSystemPrompt(input.models);
 
       let response: OpenAI.Chat.Completions.ChatCompletion;
@@ -160,12 +179,25 @@ export function openaiProvider(options: OpenAiProviderOptions): AiProvider {
 
       const raw = response.choices[0]?.message?.content ?? "";
 
-      let parsed: StructuredOutput;
+      let rawParsed: unknown;
       try {
-        parsed = JSON.parse(raw) as StructuredOutput;
+        rawParsed = JSON.parse(raw);
       } catch {
         throw new Error("OpenAI provider returned invalid JSON");
       }
+
+      try {
+        parseStructuredOutput(rawParsed);
+      } catch (err) {
+        if (err instanceof StructuredOutputParseError) {
+          throw new Error(
+            `OpenAI provider returned malformed structured output: ${err.message}`
+          );
+        }
+        throw err;
+      }
+
+      const parsed = rawParsed as StructuredOutput;
 
       const baseOutput: AiProviderOutput = {
         confidence: parsed.confidence,

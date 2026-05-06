@@ -1,3 +1,7 @@
+import {
+  parseStructuredOutput,
+  StructuredOutputParseError,
+} from "@intentform/core";
 import type {
   AiProvider,
   AiProviderInput,
@@ -8,6 +12,7 @@ import type {
 
 export interface OllamaProviderOptions {
   baseUrl?: string;
+  maxPromptLength?: number;
   model: string;
   retries?: number;
   timeoutMs?: number;
@@ -40,6 +45,10 @@ interface StructuredOutput {
   values: Record<string, unknown>;
 }
 
+function sanitizePromptString(value: string): string {
+  return value.replace(/[\r\n\t]/g, " ").replace(/[\x00-\x1F\x7F]/g, "");
+}
+
 async function withRetry<T>(fn: () => Promise<T>, retries: number): Promise<T> {
   let lastErr: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -70,14 +79,14 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 function buildFieldDescription(field: FieldDefinition): string {
   const parts: string[] = [
-    `  - id: ${field.id}`,
-    `    label: ${field.label}`,
+    `  - id: ${sanitizePromptString(field.id)}`,
+    `    label: ${sanitizePromptString(field.label)}`,
     `    type: ${field.type}`,
     `    required: ${field.required === true ? "true" : "false"}`,
   ];
 
   if (field.description) {
-    parts.push(`    description: ${field.description}`);
+    parts.push(`    description: ${sanitizePromptString(field.description)}`);
   }
 
   if (
@@ -85,7 +94,9 @@ function buildFieldDescription(field: FieldDefinition): string {
     field.options &&
     field.options.length > 0
   ) {
-    const optionValues = field.options.map((o) => o.value).join(", ");
+    const optionValues = field.options
+      .map((o) => sanitizePromptString(o.value))
+      .join(", ");
     parts.push(`    options: [${optionValues}]`);
   }
 
@@ -95,10 +106,10 @@ function buildFieldDescription(field: FieldDefinition): string {
 function buildModelDescription(model: ModelDefinition): string {
   const fieldLines = model.fields.map(buildFieldDescription).join("\n");
   return [
-    `Model id: ${model.id}`,
-    `  label: ${model.label}`,
-    `  description: ${model.description}`,
-    `  useCases: ${model.useCases.join(", ")}`,
+    `Model id: ${sanitizePromptString(model.id)}`,
+    `  label: ${sanitizePromptString(model.label)}`,
+    `  description: ${sanitizePromptString(model.description)}`,
+    `  useCases: ${model.useCases.map(sanitizePromptString).join(", ")}`,
     "  fields:",
     fieldLines,
   ].join("\n");
@@ -139,11 +150,18 @@ Return ONLY valid JSON (no markdown, no explanations) with exactly this shape:
 export function ollamaProvider(options: OllamaProviderOptions): AiProvider {
   const baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
   const { model } = options;
+  const maxPromptLength = options.maxPromptLength ?? 2000;
 
   return {
     async generateStructured(
       input: AiProviderInput
     ): Promise<AiProviderOutput> {
+      if (input.prompt.length > maxPromptLength) {
+        throw new Error(
+          `Ollama provider: prompt exceeds maxPromptLength (${input.prompt.length} > ${maxPromptLength})`
+        );
+      }
+
       const systemPrompt = buildSystemPrompt(input.models);
 
       const body: OllamaRequestBody = {
@@ -189,12 +207,25 @@ export function ollamaProvider(options: OllamaProviderOptions): AiProvider {
 
       const raw = response.message.content;
 
-      let parsed: StructuredOutput;
+      let rawParsed: unknown;
       try {
-        parsed = JSON.parse(raw) as StructuredOutput;
+        rawParsed = JSON.parse(raw);
       } catch {
         throw new Error("Ollama provider returned invalid JSON");
       }
+
+      try {
+        parseStructuredOutput(rawParsed);
+      } catch (err) {
+        if (err instanceof StructuredOutputParseError) {
+          throw new Error(
+            `Ollama provider returned malformed structured output: ${err.message}`
+          );
+        }
+        throw err;
+      }
+
+      const parsed = rawParsed as StructuredOutput;
 
       const baseOutput: AiProviderOutput = {
         confidence: parsed.confidence,
