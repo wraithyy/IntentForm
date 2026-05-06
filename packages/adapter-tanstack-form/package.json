@@ -1,6 +1,6 @@
 {
   "name": "@intentform/adapter-tanstack-form",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "exports": {
     ".": {
@@ -8,8 +8,11 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsup",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -19,8 +22,8 @@
   },
   "dependencies": {
     "@intentform/core": "workspace:*",
-    "@intentform/shared": "workspace:*",
-    "@intentform/react": "workspace:*"
+    "@intentform/react": "workspace:*",
+    "@intentform/shared": "workspace:*"
   },
   "devDependencies": {
     "@tanstack/react-form": "^0.34.0",

@@ -1,6 +1,9 @@
 ---
+// biome-ignore lint/correctness/noUnusedImports: used in Astro template
 import { Image } from "astro:assets";
+// biome-ignore lint/correctness/noUnusedImports: used in Astro template
 import logo from "../assets/logo.png";
+// biome-ignore lint/correctness/noUnusedImports: used in Astro template
 import HeroDemoCard from "./hero-demo-card.astro";
 
 const { data } = Astro.locals.starlightRoute.entry;
@@ -9,6 +12,7 @@ if (!hero) {
   return;
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: used in Astro template
 const wordmark = "IntentForm".split("");
 ---
 

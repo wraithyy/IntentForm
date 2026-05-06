@@ -1,16 +1,12 @@
 ---
-// Demo: natural language intent → form switching (Accident Report / Table Reservation)
-// Pure CSS, no JS. 14s cycle: text types first, then form reveals.
-//
-// Timeline:
-//   0–4s   intent 1 types (0–29%)
-//   4–6.5s form 1 reveals staggered (29–46%)
-//   6.5–7s fade out (46–50%)
-//   7–11s  intent 2 types (50–79%)
-//   11–13.5s form 2 reveals staggered (79–96%)
-//   13.5–14s fade out (96–100%)
+/**
+ * Demo: natural language intent → form switching (Accident Report / Table Reservation)
+ * Pure CSS, no JS. 14s cycle: text types first, then form reveals.
+ * Timeline: 0–4s intent 1 types, 4–6.5s form 1 reveals, 6.5–7s fade out,
+ *           7–11s intent 2 types, 11–13.5s form 2 reveals, 13.5–14s fade out
+ */
+const _demo = true;
 ---
-
 <div class="demo-card" aria-hidden="true">
 
   <!-- ── Intent textarea ── -->

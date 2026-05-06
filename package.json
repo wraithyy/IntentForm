@@ -1,6 +1,5 @@
 {
   "name": "intentform",
-  "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -21,6 +20,7 @@
     "husky": "^9.1.4",
     "lint-staged": "^15.2.9",
     "size-limit": "^11.0.0",
+    "tsup": "^8.0.0",
     "typescript": "^5.5.4",
     "ultracite": "^7.6.2",
     "vitest": "^2.0.5"

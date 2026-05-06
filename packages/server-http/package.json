@@ -1,6 +1,6 @@
 {
   "name": "@intentform/server-http",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "bin": {
     "intentform-server": "./dist/cli.js"
@@ -13,8 +13,11 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "test": "vitest run",
     "dev": "tsx src/cli.ts",
     "typecheck": "tsc --noEmit"
@@ -47,6 +50,7 @@
   },
   "devDependencies": {
     "@intentform/provider-openai": "workspace:*",
+    "@types/node": "^20.0.0",
     "typescript": "^5.4.5",
     "vitest": "^2.0.0",
     "tsx": "^4.0.0"

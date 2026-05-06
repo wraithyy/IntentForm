@@ -45,19 +45,34 @@ export default defineConfig({
             {
               label: "Server integration",
               items: [
-                { label: "Keep API key server-side", link: "/recipes/server-side-key/" },
-                { label: "TanStack Start", link: "/recipes/server-tanstack-start/" },
+                {
+                  label: "Keep API key server-side",
+                  link: "/recipes/server-side-key/",
+                },
+                {
+                  label: "TanStack Start",
+                  link: "/recipes/server-tanstack-start/",
+                },
                 { label: "Next.js", link: "/recipes/server-next/" },
                 { label: "Hono", link: "/recipes/server-hono/" },
-                { label: "HTTP sidecar", link: "/recipes/server-http-sidecar/" },
+                {
+                  label: "HTTP sidecar",
+                  link: "/recipes/server-http-sidecar/",
+                },
                 { label: "Spring Boot", link: "/recipes/server-spring/" },
               ],
             },
             {
               label: "Form adapters",
               items: [
-                { label: "TanStack Form", link: "/recipes/adapter-tanstack-form/" },
-                { label: "React Hook Form", link: "/recipes/adapter-react-hook-form/" },
+                {
+                  label: "TanStack Form",
+                  link: "/recipes/adapter-tanstack-form/",
+                },
+                {
+                  label: "React Hook Form",
+                  link: "/recipes/adapter-react-hook-form/",
+                },
               ],
             },
             {
