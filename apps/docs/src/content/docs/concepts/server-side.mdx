@@ -7,8 +7,11 @@ API keys for OpenAI, Anthropic, and Google must never be in browser bundles. Int
 
 ## Pattern 0 — Client-side only (demos only)
 
-```
-Browser → AI provider (direct)
+```mermaid
+flowchart LR
+  B[Browser] -->|direct API call| AI[(AI provider)]
+  style B fill:#313244,stroke:#f38ba8,color:#cdd6f4
+  style AI fill:#313244,stroke:#cba6f7,color:#cdd6f4
 ```
 
 The provider is instantiated in the browser with the API key passed directly. Only acceptable for local dev or playgrounds where the key is disposable.
@@ -23,19 +26,20 @@ const engine = createIntentForm({
 
 ## Pattern A — Node.js backend (`@intentform/server`)
 
-```
-Browser → your Node server → AI provider
-```
-
 The engine runs on your server. The browser uses `@intentform/client` to POST a prompt string to your endpoint. API key never leaves the server.
 
-```
-Browser
-  └── POST /api/intent { prompt: "..." }
-        └── @intentform/server handler
-              └── engine.parse(prompt)
-                    └── AI provider (key server-side)
-                          └── IntentResolution → JSON response
+```mermaid
+flowchart LR
+  B[Browser] -->|POST /api/intent| S["@intentform/server\nNode.js handler"]
+  S --> E["engine.parse()"]
+  E --> AI[(AI provider)]
+  AI --> R["IntentResolution\nJSON response"]
+  R --> B
+  style B fill:#313244,stroke:#89dceb,color:#cdd6f4
+  style S fill:#313244,stroke:#cba6f7,color:#cdd6f4
+  style E fill:#313244,stroke:#b4befe,color:#cdd6f4
+  style AI fill:#313244,stroke:#a6e3a1,color:#cdd6f4
+  style R fill:#313244,stroke:#fab387,color:#cdd6f4
 ```
 
 Supported server frameworks:
@@ -70,17 +74,18 @@ const engine = createClientIntentForm({
 
 ## Pattern B — Non-Node backend (`@intentform/server-http`)
 
-```
-Browser → IntentForm HTTP sidecar → AI provider
-```
-
 If your backend is Spring Boot, .NET, Django, or any other non-Node runtime, run `@intentform/server-http` as a sidecar container. Your backend doesn't need to know about AI at all.
 
-```
-Browser
-  └── POST http://intentform-sidecar:3721/api/intent
-        └── @intentform/server-http (Docker container)
-              └── AI provider → JSON response
+```mermaid
+flowchart LR
+  B[Browser] -->|POST /api/intent| SC["@intentform/server-http\nDocker sidecar"]
+  SC --> AI[(AI provider)]
+  AI --> R["JSON response"]
+  R --> B
+  style B fill:#313244,stroke:#89dceb,color:#cdd6f4
+  style SC fill:#313244,stroke:#f38ba8,color:#cdd6f4
+  style AI fill:#313244,stroke:#a6e3a1,color:#cdd6f4
+  style R fill:#313244,stroke:#fab387,color:#cdd6f4
 ```
 
 See the [HTTP Sidecar recipe](../recipes/server-http-sidecar/) for Docker Compose setup, env vars, and backend integration examples.

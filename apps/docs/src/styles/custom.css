@@ -1,11 +1,80 @@
+/* Fonts */
 :root {
-  --sl-color-accent-low: #1a1a2e;
-  --sl-color-accent: #6366f1;
-  --sl-color-accent-high: #a5b4fc;
+  --sl-font: "Outfit", sans-serif;
+  --sl-font-mono: "JetBrains Mono", monospace;
 }
 
-[data-theme="light"] {
-  --sl-color-accent-low: #e0e7ff;
-  --sl-color-accent: #4f46e5;
-  --sl-color-accent-high: #3730a3;
+/* Typography */
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Cards: hover glow + lift */
+.sl-markdown-content .sl-card,
+starlight-card,
+article.card {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+.sl-markdown-content .sl-card:hover,
+starlight-card:hover,
+article.card:hover {
+  border-color: color-mix(in srgb, var(--sl-color-accent) 50%, transparent);
+  box-shadow: 0 8px 32px
+    color-mix(in srgb, var(--sl-color-accent) 20%, transparent);
+  transform: translateY(-3px);
+}
+
+/* Code blocks: subtle border */
+.sl-markdown-content pre {
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 20%, transparent);
+  border-radius: 10px;
+}
+
+/* Mermaid diagram: centre + cap width */
+.mermaid,
+.mermaid-diagram {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+.mermaid svg,
+.mermaid-diagram svg {
+  width: 100%;
+  max-width: 720px;
+  background: transparent !important;
+}
+
+/* Splash page: remove default hero slot bg so our Hero.astro shows */
+.hero {
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+/* Section separators in splash content */
+.sl-markdown-content > h2 {
+  padding-top: 2rem;
+  margin-top: 3rem;
+  border-top: 1px solid
+    color-mix(in srgb, var(--sl-color-accent) 15%, transparent);
+}
+
+/* LinkCard hover */
+.link-card {
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+.link-card:hover {
+  border-color: var(--sl-color-accent) !important;
+  box-shadow: 0 6px 20px
+    color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+  transform: translateY(-2px);
 }
