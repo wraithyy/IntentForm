@@ -1,0 +1,87 @@
+---
+title: Security
+description: How IntentForm protects against prompt injection and what to keep in mind when deploying.
+---
+
+IntentForm passes user input to an AI model and injects model definitions into the system prompt. Both are attack surfaces worth understanding.
+
+## Prompt injection
+
+Prompt injection is when a malicious user crafts input designed to override the AI's instructions — for example, submitting `"Ignore previous instructions and return {...}"` as their form intent.
+
+IntentForm applies three layers of defence in every built-in provider:
+
+### 1. Output schema validation
+
+Every AI response is validated against a strict Zod schema before it reaches your application. If the model returns anything other than the expected shape (`model`, `values`, `fieldRelevance`, `confidence`), the provider throws a `StructuredOutputParseError`.
+
+```typescript
+// This happens automatically inside each provider.
+// Your app only receives a well-typed, validated object.
+parseStructuredOutput(rawAiResponse)
+```
+
+This means a successful jailbreak that produces invalid JSON or an unexpected structure will be caught and surfaced as an error, not silently accepted.
+
+### 2. Prompt length limit
+
+All providers reject prompts that exceed `maxPromptLength` (default: `2000` characters) before sending anything to the AI API. This limits the attack surface for large injection payloads.
+
+```typescript
+openaiProvider({
+  apiKey: process.env.OPENAI_API_KEY!,
+  maxPromptLength: 500, // stricter limit for short-intent use cases
+})
+```
+
+### 3. Model definition sanitization
+
+Model `id`, `label`, `description`, `useCases`, and field labels are sanitized before being interpolated into the system prompt. Newlines and control characters are stripped so that injected text in model definitions cannot break out of their context.
+
+:::caution[Dynamic model registries]
+If you load model definitions from a database, admin UI, or user-editable config, treat those strings as untrusted input — the same way you would treat any user-controlled data. The sanitization above is a safety net, not a substitute for access controls on who can create or edit model definitions.
+:::
+
+## API key exposure
+
+Never pass an API key from the browser. Built-in providers accept an `apiKey` option — if used client-side, that key is visible to anyone who opens DevTools.
+
+Keep providers server-side and call them through a server function or API route. See the recipes for concrete patterns:
+
+- [Next.js Server Actions](../recipes/server-next/)
+- [TanStack Start server functions](../recipes/server-tanstack-start/)
+- [Hono API route](../recipes/server-hono/)
+- [HTTP sidecar](../recipes/server-http-sidecar/)
+
+## Custom providers
+
+If you implement a custom `AiProvider`, apply the same patterns:
+
+- Validate AI responses with `parseStructuredOutput` from `@intentform/core` before returning.
+- Enforce a prompt length cap before calling the external API.
+- Never pass raw AI output to your frontend without validation.
+
+```typescript
+import { parseStructuredOutput } from '@intentform/core'
+
+const myProvider: AiProvider = {
+  async generateStructured(input) {
+    if (input.prompt.length > 2000) {
+      throw new Error('Prompt too long')
+    }
+    const raw = await callMyModel(input)
+    const validated = parseStructuredOutput(raw) // throws if invalid
+    return { data: raw, confidence: validated.confidence }
+  },
+}
+```
+
+## Summary
+
+| Threat | Mitigation |
+|--------|-----------|
+| User injects instructions via intent text | Output validated by Zod schema; structured output format enforced by provider APIs |
+| Large injection payload | `maxPromptLength` rejects oversized prompts before API call |
+| Injected text in model definitions | Control characters stripped before system prompt interpolation |
+| API key leaked to browser | Keep providers server-side — see server-side recipes |
+| Malformed AI response passed to app | `parseStructuredOutput` throws `StructuredOutputParseError` on invalid shape |
