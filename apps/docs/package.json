@@ -14,6 +14,7 @@
     "@intentform/provider-openai": "workspace:*",
     "@intentform/react": "workspace:*",
     "@intentform/shared": "workspace:*",
+    "astro-mermaid": "^2.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.23.8"

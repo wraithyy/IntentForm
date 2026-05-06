@@ -1,86 +1,101 @@
 ---
 title: IntentForm
-description: Transform natural language intent into dynamic, validated forms.
+description: Transform natural language intent into dynamic, validated forms. AI picks the right form, pre-fills the fields — your backend receives the same JSON it always expected.
 template: splash
 hero:
-  tagline: "Transform natural language intent into dynamic, validated forms — AI picks the form, AI pre-fills the fields, your backend sees the same JSON as always."
+  title: "Intent → Form. Done."
+  tagline: "Users type what they need. IntentForm picks the right form, pre-fills every field, and sends your backend the exact JSON it already expects."
   actions:
     - text: Quick Start
       link: ./quick-start/
       icon: right-arrow
       variant: primary
-    - text: Playground
+    - text: Try Playground
       link: ./playground/
       icon: external
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## How it works
+
+```mermaid
+flowchart LR
+  A["User types intent"] --> B["engine.parse()"]
+  B --> C["AI selects model\n+ extracts values"]
+  C --> D["{ model, values,\n  confidence }"]
+  D --> E["Form pre-fills\n→ user reviews\n→ submit"]
+  style A fill:#313244,stroke:#cba6f7,color:#cdd6f4
+  style B fill:#313244,stroke:#b4befe,color:#cdd6f4
+  style C fill:#313244,stroke:#cba6f7,color:#cdd6f4
+  style D fill:#313244,stroke:#a6e3a1,color:#cdd6f4
+  style E fill:#313244,stroke:#89dceb,color:#cdd6f4
+```
+
+## Why IntentForm
 
 <CardGrid>
-  <Card title="The problem with form-heavy apps" icon="warning">
-    Insurance portals, HR systems, government services, support desks — all share the same UX friction: the user has to navigate a menu of form types, pick the correct one, then fill 15–20 fields from scratch. Most users pick the wrong form. Most abandon halfway through.
-
-    The bottleneck is not the form itself. It's **model selection and data entry** — tasks that are trivially easy for an AI that has read the user's intent.
+  <Card title="Form-heavy apps drown users" icon="warning">
+    Insurance portals, HR systems, government services — users must navigate a menu of form types, pick the correct one, then fill 20 fields from scratch. Most pick the wrong form. Most abandon halfway through.
   </Card>
 
-  <Card title="Why not replace forms with chat?" icon="information">
-    Conversational AI interfaces are great for exploration. They are poor for structured workflows. A chat transcript cannot be directly validated, routed to a backend endpoint, or stored in a database without an additional (fragile) parsing step.
-
-    Forms map to backend contracts. A `POST /api/claims` endpoint expects `{ policyNumber, claimType, incidentDate, lossAmount }` — not a paragraph.
+  <Card title="Chat alone can't replace forms" icon="information">
+    A chat transcript can't be validated, routed to a backend endpoint, or stored without a fragile parsing step. Your `POST /api/claims` expects `{ policyNumber, claimType, incidentDate }` — not a paragraph.
   </Card>
 
-  <Card title="The IntentForm approach" icon="puzzle">
-    Define one `ModelDefinition` per backend entity. IntentForm's engine takes a single sentence of user intent, uses an AI provider to:
-
-    1. Pick the right model from your list.
-    2. Extract structured values that map to your schema.
-
-    The form pre-fills. The user reviews and submits. Your backend receives the same JSON it has always expected — no schema changes, no new storage format.
+  <Card title="Models map 1:1 to your API" icon="puzzle">
+    Define one `ModelDefinition` per backend entity. IntentForm's engine resolves intent to the right model and extracts structured values that match your existing schema — no new endpoints, no new storage format.
   </Card>
 </CardGrid>
 
-<Card title="Example" icon="rocket">
-```
-"I slipped on ice in the parking lot yesterday, twisted my ankle"
-          │
-          ▼ engine.parse(intent)
-          │
-          ▼ AI selects model + extracts values
-{
-  model: "accidentReport",
-  values: {
-    incidentDate: "2026-05-04",
-    description: "Slipped on ice in parking lot, twisted ankle",
-    injuryType: "minor"
-  },
-  confidence: 0.91
-}
-          │
-          ▼ form pre-fills → user reviews → submit
-```
-</Card>
+## Get started in 30 seconds
 
-## Install
+<Tabs>
+  <TabItem label="Install">
+    ```bash
+    pnpm add @intentform/core @intentform/react @intentform/provider-openai zod
+    ```
+  </TabItem>
+  <TabItem label="Wire up">
+    ```typescript
+    import { createIntentForm } from '@intentform/core'
+    import { IntentForm } from '@intentform/react'
+    import { openaiProvider } from '@intentform/provider-openai'
+    import { accidentReportModel } from './models/accident-report'
 
-```bash
-pnpm add @intentform/core @intentform/react @intentform/provider-openai zod
-```
+    const engine = createIntentForm({
+      provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+      models: [accidentReportModel],
+    })
 
-```typescript
-import { createIntentForm } from '@intentform/core'
-import { IntentForm } from '@intentform/react'
-import { openaiProvider } from '@intentform/provider-openai'
-import { accidentReportModel } from './models/accident-report'
+    export default function App() {
+      return <IntentForm engine={engine} />
+    }
+    ```
+  </TabItem>
+</Tabs>
 
-const engine = createIntentForm({
-  provider: openaiProvider({ apiKey: process.env.OPENAI_API_KEY! }),
-  models: [accidentReportModel],
-})
+## Built for production
 
-export default function App() {
-  return <IntentForm engine={engine} />
-}
-```
+<CardGrid>
+  <Card title="4 AI providers" icon="star">
+    OpenAI, Anthropic, Google Gemini, and Ollama out of the box. Swap or combine with confidence tiers.
+  </Card>
+
+  <Card title="2 form adapters" icon="puzzle">
+    TanStack Form and React Hook Form. Bring your existing form stack — IntentForm adds intent resolution on top.
+  </Card>
+
+  <Card title="Server-side patterns" icon="setting">
+    API key never in the browser. Node.js handler or Docker sidecar — your choice, both covered.
+  </Card>
+
+  <Card title="Debug panel" icon="information">
+    `<IntentFormDebugPanel />` surfaces model selection, field scores, confidence, and provider usage at a glance.
+  </Card>
+</CardGrid>
+
+## Explore the docs
 
 <CardGrid>
   <LinkCard title="Quick Start" href="./quick-start/" description="Working example in 5 minutes" />

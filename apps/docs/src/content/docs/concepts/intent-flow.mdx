@@ -3,33 +3,23 @@ title: How It Works
 description: The full intent-to-form pipeline, step by step.
 ---
 
-```
-User types intent
-       │
-       ▼
-engine.parse(intent)
-       │
-       ▼
-AiProvider.generateStructured(input)
-  → { data, confidence, usage }
-       │
-       ▼
-parseStructuredOutput(data)
-  → { model, values, fieldRelevance, confidence }
-       │
-       ▼
-ModelRegistry.select(model id)
-  → ModelDefinition
-       │
-       ▼
-Apply field values + fieldRelevance scores
-       │
-       ▼
-evaluateRules(model.rules, values)
-  → { visible, required, disabled } per field
-       │
-       ▼
-<IntentForm /> renders pre-filled form
+```mermaid
+flowchart TD
+  A["User types intent"] --> B["engine.parse(intent)"]
+  B --> C["AiProvider.generateStructured()"]
+  C --> D["parseStructuredOutput(data)"]
+  D --> E["ModelRegistry.select(modelId)"]
+  E --> F["Apply field values + relevance scores"]
+  F --> G["evaluateRules(model.rules, values)"]
+  G --> H["&lt;IntentForm /&gt; renders pre-filled form"]
+  style A fill:#313244,stroke:#cba6f7,color:#cdd6f4
+  style B fill:#313244,stroke:#b4befe,color:#cdd6f4
+  style C fill:#313244,stroke:#cba6f7,color:#cdd6f4
+  style D fill:#313244,stroke:#a6e3a1,color:#cdd6f4
+  style E fill:#313244,stroke:#89dceb,color:#cdd6f4
+  style F fill:#313244,stroke:#fab387,color:#cdd6f4
+  style G fill:#313244,stroke:#f38ba8,color:#cdd6f4
+  style H fill:#313244,stroke:#a6e3a1,color:#cdd6f4
 ```
 
 ## Steps explained
