@@ -20,17 +20,56 @@ import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/comp
 ## How it works
 
 ```mermaid
-flowchart LR
-  A["User types intent"] --> B["engine.parse()"]
-  B --> C["AI selects model\n+ extracts values"]
-  C --> D["{ model, values,\n  confidence }"]
-  D --> E["Form pre-fills\n→ user reviews\n→ submit"]
-  style A fill:#313244,stroke:#cba6f7,color:#cdd6f4
-  style B fill:#313244,stroke:#b4befe,color:#cdd6f4
-  style C fill:#313244,stroke:#cba6f7,color:#cdd6f4
-  style D fill:#313244,stroke:#a6e3a1,color:#cdd6f4
-  style E fill:#313244,stroke:#89dceb,color:#cdd6f4
+flowchart TB
+  subgraph U["User"]
+    P["\"I slipped on a wet floor at the warehouse\nyesterday around 3pm. Minor bruise on my arm.\""]
+  end
+
+  subgraph E["IntentForm engine"]
+    direction TB
+    PARSE["engine.parse(intent)"]
+    AI["AI provider\n(OpenAI · Anthropic · Gemini · Ollama)"]
+    SEL{"Model registry\n10+ models"}
+    PARSE --> AI --> SEL
+  end
+
+  subgraph O["Structured output"]
+    OUT["model: 'accidentReport'\nconfidence: 0.94\nvalues:\n  location: 'warehouse'\n  incidentDate: '2026-05-05'\n  description: 'slipped on wet floor'\n  injuryType: 'minor'"]
+  end
+
+  subgraph F["Rendered form"]
+    FORM["IntentForm\nfields prefilled · rules applied\nuser reviews → submit"]
+  end
+
+  P -->|"natural language"| PARSE
+  SEL -->|"JSON only"| OUT
+  OUT -->|"Zod-validated"| FORM
+  FORM -.->|"POST /api/claims"| API[("Your existing\nbackend")]
+
+  classDef user fill:#1e1e2e,stroke:#cba6f7,color:#cdd6f4,stroke-width:2px
+  classDef engine fill:#181825,stroke:#b4befe,color:#cdd6f4,stroke-width:2px
+  classDef output fill:#181825,stroke:#a6e3a1,color:#cdd6f4,stroke-width:2px
+  classDef form fill:#181825,stroke:#89dceb,color:#cdd6f4,stroke-width:2px
+  classDef api fill:#313244,stroke:#f38ba8,color:#cdd6f4,stroke-width:2px
+  class P user
+  class PARSE,AI,SEL engine
+  class OUT output
+  class FORM form
+  class API api
 ```
+
+<CardGrid>
+  <LinkCard
+    title="Start in 5 minutes"
+    href="./quick-start/"
+    description="Install, wire one provider, render IntentForm, ship."
+  />
+  <LinkCard
+    title="Try it live"
+    href="./playground/"
+    description="Type any intent in the browser, watch the form auto-fill."
+  />
+</CardGrid>
 
 ## Why IntentForm
 
@@ -98,8 +137,6 @@ flowchart LR
 ## Explore the docs
 
 <CardGrid>
-  <LinkCard title="Quick Start" href="./quick-start/" description="Working example in 5 minutes" />
-  <LinkCard title="Playground" href="./playground/" description="Try it live in the browser" />
   <LinkCard title="How It Works" href="./concepts/intent-flow/" description="Full engine pipeline explained" />
   <LinkCard title="All Packages" href="./concepts/packages/" description="Overview of every package and when to use it" />
   <LinkCard title="Keep API Key Server-Side" href="./recipes/server-side-key/" description="Production security pattern" />
