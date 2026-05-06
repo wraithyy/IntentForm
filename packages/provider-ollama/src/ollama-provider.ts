@@ -46,7 +46,8 @@ interface StructuredOutput {
 }
 
 function sanitizePromptString(value: string): string {
-  return value.replace(/[\r\n\t]/g, " ").replace(/[\x00-\x1F\x7F]/g, "");
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional control-char strip
+  return value.replace(/[\r\n\t]/g, " ").replace(/[\u0000-\u001F\u007F]/g, "");
 }
 
 async function withRetry<T>(fn: () => Promise<T>, retries: number): Promise<T> {
@@ -147,6 +148,47 @@ Return ONLY valid JSON (no markdown, no explanations) with exactly this shape:
 - "confidence": a number between 0 and 1 representing your overall confidence in the model selection and extracted values.`;
 }
 
+function parseAndValidateOutput(raw: string): StructuredOutput {
+  let rawParsed: unknown;
+  try {
+    rawParsed = JSON.parse(raw);
+  } catch {
+    throw new Error("Ollama provider returned invalid JSON");
+  }
+
+  try {
+    parseStructuredOutput(rawParsed);
+  } catch (err) {
+    if (err instanceof StructuredOutputParseError) {
+      throw new Error(
+        `Ollama provider returned malformed structured output: ${err.message}`
+      );
+    }
+    throw err;
+  }
+
+  return rawParsed as StructuredOutput;
+}
+
+function buildOutputWithUsage(
+  base: AiProviderOutput,
+  response: OllamaResponse
+): AiProviderOutput {
+  const tokensIn = response.prompt_eval_count;
+  const tokensOut = response.eval_count;
+
+  if (
+    tokensIn !== undefined &&
+    tokensIn > 0 &&
+    tokensOut !== undefined &&
+    tokensOut > 0
+  ) {
+    return { ...base, usage: { tokensIn, tokensOut } };
+  }
+
+  return base;
+}
+
 export function ollamaProvider(options: OllamaProviderOptions): AiProvider {
   const baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
   const { model } = options;
@@ -205,52 +247,14 @@ export function ollamaProvider(options: OllamaProviderOptions): AiProvider {
         throw new Error("Ollama provider returned invalid response");
       }
 
-      const raw = response.message.content;
-
-      let rawParsed: unknown;
-      try {
-        rawParsed = JSON.parse(raw);
-      } catch {
-        throw new Error("Ollama provider returned invalid JSON");
-      }
-
-      try {
-        parseStructuredOutput(rawParsed);
-      } catch (err) {
-        if (err instanceof StructuredOutputParseError) {
-          throw new Error(
-            `Ollama provider returned malformed structured output: ${err.message}`
-          );
-        }
-        throw err;
-      }
-
-      const parsed = rawParsed as StructuredOutput;
+      const parsed = parseAndValidateOutput(response.message.content);
 
       const baseOutput: AiProviderOutput = {
         confidence: parsed.confidence,
         data: parsed,
       };
 
-      const tokensIn = response.prompt_eval_count;
-      const tokensOut = response.eval_count;
-
-      if (
-        tokensIn !== undefined &&
-        tokensIn > 0 &&
-        tokensOut !== undefined &&
-        tokensOut > 0
-      ) {
-        return {
-          ...baseOutput,
-          usage: {
-            tokensIn,
-            tokensOut,
-          },
-        };
-      }
-
-      return baseOutput;
+      return buildOutputWithUsage(baseOutput, response);
     },
   };
 }

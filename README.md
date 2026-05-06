@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="apps/docs/src/assets/logo.png" alt="IntentForm" width="96" />
+</p>
+
 # IntentForm
 
 > Transform natural language intent into dynamic, validated forms.

@@ -50,7 +50,8 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 function sanitizePromptString(value: string): string {
-  return value.replace(/[\r\n\t]/g, " ").replace(/[\x00-\x1F\x7F]/g, "");
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional control-char strip
+  return value.replace(/[\r\n\t]/g, " ").replace(/[\u0000-\u001F\u007F]/g, "");
 }
 
 function buildFieldDescription(field: FieldDefinition): string {

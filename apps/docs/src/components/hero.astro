@@ -1,8 +1,9 @@
 ---
-import type { Props } from "@astrojs/starlight/props";
 const { entry } = Astro.props;
 const hero = entry?.data?.hero;
-if (!hero) return;
+if (!hero) {
+  return;
+}
 ---
 
 <div class="hero-wrapper">

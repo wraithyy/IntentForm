@@ -50,7 +50,8 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 function sanitizePromptString(value: string): string {
-  return value.replace(/[\r\n\t]/g, " ").replace(/[\x00-\x1F\x7F]/g, "");
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional control-char strip
+  return value.replace(/[\r\n\t]/g, " ").replace(/[\u0000-\u001F\u007F]/g, "");
 }
 
 function buildFieldDescription(field: FieldDefinition): string {
@@ -130,6 +131,44 @@ interface StructuredOutput {
   values: Record<string, unknown>;
 }
 
+function parseAndValidateOutput(raw: string): StructuredOutput {
+  let rawParsed: unknown;
+  try {
+    rawParsed = JSON.parse(raw);
+  } catch {
+    throw new Error("Google provider returned invalid JSON");
+  }
+
+  try {
+    parseStructuredOutput(rawParsed);
+  } catch (err) {
+    if (err instanceof StructuredOutputParseError) {
+      throw new Error(
+        `Google provider returned malformed structured output: ${err.message}`
+      );
+    }
+    throw err;
+  }
+
+  return rawParsed as StructuredOutput;
+}
+
+function buildOutputWithUsage(
+  base: AiProviderOutput,
+  usageMetadata:
+    | { promptTokenCount?: number; candidatesTokenCount?: number }
+    | undefined
+): AiProviderOutput {
+  const tokensIn = usageMetadata?.promptTokenCount ?? 0;
+  const tokensOut = usageMetadata?.candidatesTokenCount ?? 0;
+
+  if (tokensIn !== 0 || tokensOut !== 0) {
+    return { ...base, usage: { tokensIn, tokensOut } };
+  }
+
+  return base;
+}
+
 export function googleProvider(options: GoogleProviderOptions): AiProvider {
   const genAI = new GoogleGenerativeAI(options.apiKey);
   const modelName = options.model ?? DEFAULT_MODEL;
@@ -175,45 +214,14 @@ export function googleProvider(options: GoogleProviderOptions): AiProvider {
         throw new Error(`Google provider error: ${message}`);
       }
 
-      let rawParsed: unknown;
-      try {
-        rawParsed = JSON.parse(raw);
-      } catch {
-        throw new Error("Google provider returned invalid JSON");
-      }
-
-      try {
-        parseStructuredOutput(rawParsed);
-      } catch (err) {
-        if (err instanceof StructuredOutputParseError) {
-          throw new Error(
-            `Google provider returned malformed structured output: ${err.message}`
-          );
-        }
-        throw err;
-      }
-
-      const parsed = rawParsed as StructuredOutput;
+      const parsed = parseAndValidateOutput(raw);
 
       const baseOutput: AiProviderOutput = {
         confidence: parsed.confidence,
         data: parsed,
       };
 
-      const tokensIn = usageMetadata?.promptTokenCount ?? 0;
-      const tokensOut = usageMetadata?.candidatesTokenCount ?? 0;
-
-      if (tokensIn !== 0 || tokensOut !== 0) {
-        return {
-          ...baseOutput,
-          usage: {
-            tokensIn,
-            tokensOut,
-          },
-        };
-      }
-
-      return baseOutput;
+      return buildOutputWithUsage(baseOutput, usageMetadata);
     },
   };
 }
