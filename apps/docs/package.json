@@ -9,23 +9,24 @@
     "preview": "astro preview"
   },
   "dependencies": {
+    "@catppuccin/starlight": "^2.0.1",
     "@intentform/core": "workspace:*",
+    "@intentform/provider-openai": "workspace:*",
     "@intentform/react": "workspace:*",
     "@intentform/shared": "workspace:*",
-    "@intentform/provider-openai": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "astro": "^6.0.0",
-    "@astrojs/starlight": "^0.38.4",
     "@astrojs/react": "^4.0.0",
+    "@astrojs/starlight": "^0.38.4",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "astro": "^6.0.0",
     "starlight-typedoc": "^0.21.5",
     "typedoc": "^0.28.0",
     "typedoc-plugin-markdown": "^4.4.0",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
     "typescript": "^5.5.4"
   }
 }

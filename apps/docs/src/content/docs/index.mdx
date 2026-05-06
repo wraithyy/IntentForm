@@ -14,27 +14,32 @@ hero:
       icon: external
 ---
 
-## The problem with form-heavy apps
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-Insurance portals, HR systems, government services, support desks — all share the same UX friction: the user has to navigate a menu of form types, pick the correct one, then fill 15–20 fields from scratch. Most users pick the wrong form. Most abandon halfway through.
+<CardGrid>
+  <Card title="The problem with form-heavy apps" icon="warning">
+    Insurance portals, HR systems, government services, support desks — all share the same UX friction: the user has to navigate a menu of form types, pick the correct one, then fill 15–20 fields from scratch. Most users pick the wrong form. Most abandon halfway through.
 
-The bottleneck is not the form itself. It's **model selection and data entry** — tasks that are trivially easy for an AI that has read the user's intent.
+    The bottleneck is not the form itself. It's **model selection and data entry** — tasks that are trivially easy for an AI that has read the user's intent.
+  </Card>
 
-## Why not replace forms with chat?
+  <Card title="Why not replace forms with chat?" icon="information">
+    Conversational AI interfaces are great for exploration. They are poor for structured workflows. A chat transcript cannot be directly validated, routed to a backend endpoint, or stored in a database without an additional (fragile) parsing step.
 
-Conversational AI interfaces are great for exploration. They are poor for structured workflows. A chat transcript cannot be directly validated, routed to a backend endpoint, or stored in a database without an additional (fragile) parsing step.
+    Forms map to backend contracts. A `POST /api/claims` endpoint expects `{ policyNumber, claimType, incidentDate, lossAmount }` — not a paragraph.
+  </Card>
 
-Forms map to backend contracts. A `POST /api/claims` endpoint expects `{ policyNumber, claimType, incidentDate, lossAmount }` — not a paragraph.
+  <Card title="The IntentForm approach" icon="puzzle">
+    Define one `ModelDefinition` per backend entity. IntentForm's engine takes a single sentence of user intent, uses an AI provider to:
 
-## The IntentForm approach
+    1. Pick the right model from your list.
+    2. Extract structured values that map to your schema.
 
-Define one `ModelDefinition` per backend entity. IntentForm's engine takes a single sentence of user intent, uses an AI provider to:
+    The form pre-fills. The user reviews and submits. Your backend receives the same JSON it has always expected — no schema changes, no new storage format.
+  </Card>
+</CardGrid>
 
-1. Pick the right model from your list.
-2. Extract structured values that map to your schema.
-
-The form pre-fills. The user reviews and submits. Your backend receives the same JSON it has always expected — no schema changes, no new storage format.
-
+<Card title="Example" icon="rocket">
 ```
 "I slipped on ice in the parking lot yesterday, twisted my ankle"
           │
@@ -53,6 +58,7 @@ The form pre-fills. The user reviews and submits. Your backend receives the same
           │
           ▼ form pre-fills → user reviews → submit
 ```
+</Card>
 
 ## Install
 
@@ -76,10 +82,10 @@ export default function App() {
 }
 ```
 
-## Explore
-
-- [Quick Start](./quick-start/) — working example in 5 minutes
-- [Playground](./playground/) — try it live in the browser
-- [How It Works](./concepts/intent-flow/) — full engine pipeline explained
-- [All Packages](./concepts/packages/) — overview of every package and when to use it
-- [Keep API Key Server-Side](./recipes/server-side-key/) — production security pattern
+<CardGrid>
+  <LinkCard title="Quick Start" href="./quick-start/" description="Working example in 5 minutes" />
+  <LinkCard title="Playground" href="./playground/" description="Try it live in the browser" />
+  <LinkCard title="How It Works" href="./concepts/intent-flow/" description="Full engine pipeline explained" />
+  <LinkCard title="All Packages" href="./concepts/packages/" description="Overview of every package and when to use it" />
+  <LinkCard title="Keep API Key Server-Side" href="./recipes/server-side-key/" description="Production security pattern" />
+</CardGrid>
